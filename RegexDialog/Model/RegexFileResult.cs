@@ -15,7 +15,7 @@ namespace RegexDialog
             }
         }
 
-        public override bool IsExpanded { get => true; }
+        public override bool IsExpanded { get { return true; } }
 
         public override void RefreshExpands()
         {

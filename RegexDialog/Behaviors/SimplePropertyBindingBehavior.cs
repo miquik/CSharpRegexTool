@@ -29,8 +29,9 @@ namespace RegexDialog.Behaviors
 
         private static void DependencyPropertyChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs eventArgs)
         {
-            if (dependencyObject is SimplePropertyBindingBehavior simplePropertyBinding)
+            if (dependencyObject is SimplePropertyBindingBehavior)
             {
+                SimplePropertyBindingBehavior simplePropertyBinding = dependencyObject as SimplePropertyBindingBehavior;
                 simplePropertyBinding.UpdateValue();
             }
         }

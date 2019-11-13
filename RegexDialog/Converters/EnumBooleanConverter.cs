@@ -12,9 +12,11 @@ namespace RegexDialog.Converters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (!(parameter is string parameterString))
+            if (!(parameter is string))
+            {
                 return DependencyProperty.UnsetValue;
-
+            }
+            string parameterString = (string)parameter;
             if (Enum.IsDefined(value.GetType(), value) == false)
                 return DependencyProperty.UnsetValue;
 
