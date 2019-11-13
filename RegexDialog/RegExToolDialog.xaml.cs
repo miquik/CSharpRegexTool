@@ -23,7 +23,7 @@ namespace RegexDialog
     /// <summary>
     /// Logique d'interaction pour RegExToolDialog.xaml
     /// </summary>
-    public partial class RegExToolDialog : Window
+    public partial class RegExToolDialog : UserControl
     {
         private List<RegExOptionViewModel> regExOptionViewModelsList = new List<RegExOptionViewModel>();
         List<Regex> bracketsRegexList = (new Regex[] 

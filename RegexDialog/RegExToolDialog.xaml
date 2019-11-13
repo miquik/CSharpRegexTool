@@ -1,4 +1,4 @@
-﻿<Window x:Class="RegexDialog.RegExToolDialog"
+﻿<UserControl x:Class="RegexDialog.RegExToolDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:RegexDialog"
@@ -6,20 +6,19 @@
         xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         xmlns:behaviors="clr-namespace:RegexDialog.Behaviors"
-        Title="C# Regex Tools" 
+             Background="{DynamicResource VsBrush.Window}"
+             Foreground="{DynamicResource VsBrush.WindowText}"
+        
         Height="422.75" 
         MinHeight="300"
         MinWidth="600"
         Width="1427.97" 
-        WindowStyle="ToolWindow"
-        Closing="Window_Closing"
         Loaded="Root_Loaded"
         SizeChanged="Root_SizeChanged"
-        LocationChanged="Root_LocationChanged"
         PreviewKeyDown="Root_PreviewKeyDown"
         DataContext="{x:Static local:Config.Instance}"
         x:Name="Root">
-    <Window.Resources>
+    <UserControl.Resources>
         <BitmapImage x:Key="NewPicture" UriSource="Resources/page_white.png" />
         <BitmapImage x:Key="OpenPicture" UriSource="Resources/folder_page.png" />
         <BitmapImage x:Key="SavePicture" UriSource="Resources/diskette.png" />
@@ -50,7 +49,7 @@
             </Style.Triggers>
         </Style>
         
-    </Window.Resources>
+    </UserControl.Resources>
     <DockPanel Background="WhiteSmoke" >
         <Menu DockPanel.Dock="Top" BorderBrush="Silver" BorderThickness="0,0,0,1">
             <MenuItem Header="_File" >
@@ -657,4 +656,4 @@
             </TabControl>
         </Grid>
     </DockPanel>
-</Window>
+</UserControl>
