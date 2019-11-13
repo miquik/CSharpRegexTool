@@ -5,10 +5,7 @@
         xmlns:converters="clr-namespace:RegexDialog.Converters"
         xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
-        xmlns:behaviors="clr-namespace:RegexDialog.Behaviors"
-             Background="{DynamicResource VsBrush.Window}"
-             Foreground="{DynamicResource VsBrush.WindowText}"
-        
+        xmlns:behaviors="clr-namespace:RegexDialog.Behaviors"        
         Height="422.75" 
         MinHeight="300"
         MinWidth="600"
