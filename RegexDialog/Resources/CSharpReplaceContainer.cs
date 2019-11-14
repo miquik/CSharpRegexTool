@@ -10,15 +10,18 @@ public class Script
     public string Replace(Match match, int index, string fileName, int globalIndex, int fileIndex)
     {
         //code
+        // return string.Empty;
     }
 
     public string Replace(Match match, Group group, int index, string fileName, int globalIndex, int fileIndex)
     {
         //code
+        // return string.Empty;
     }
 
     public string Replace(Match match, Group group, Capture capture, int index, string fileName, int globalIndex, int fileIndex)
     {
         //code
+        // return string.Empty;
     }
 }
