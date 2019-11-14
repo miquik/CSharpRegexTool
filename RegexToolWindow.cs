@@ -24,6 +24,8 @@ namespace CSharpRegexTool
     [Guid("2642df9b-934c-4f7b-a552-5ac0a774c1e8")]
     public class RegexToolWindow : ToolWindowPane
     {
+        private EnvDTE._DTE _dte;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="RegexToolWindow"/> class.
         /// </summary>
@@ -34,7 +36,13 @@ namespace CSharpRegexTool
             // This is the user control hosted by the tool window; Note that, even if this class implements IDisposable,
             // we are not calling Dispose on this object. This is because ToolWindowPane calls Dispose on
             // the object returned by the Content property.
-            this.Content = new RegexToolWindowControl();
+            // this.Content = new RegexToolWindowControl();
+            this.Content = new RegexDialog.RegExToolDialog(_dte);
+        }
+
+        public void SetDTE(EnvDTE._DTE dte)
+        {
+            _dte = dte;
         }
     }
 }

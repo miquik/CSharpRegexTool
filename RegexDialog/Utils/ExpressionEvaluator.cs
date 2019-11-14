@@ -672,41 +672,42 @@ namespace RegexDialog
             IfBlockEvaluatedState ifBlockEvaluatedState = IfBlockEvaluatedState.NoBlockEvaluated;
             List<List<string>> ifElseStatementsList = new List<List<string>>();
 
-            object ManageJumpStatementsOrExpressionEval(string expression)
-            {
-                string baseExpression = expression;
-                object result = null;
+            Func<string, object> ManageJumpStatementsOrExpressionEval = (string expression) =>
+             {
+                 string baseExpression = expression;
+                 object result = null;
 
-                expression = expression.Trim();
+                 expression = expression.Trim();
 
-                string expressionToTest = OptionCaseSensitiveEvaluationActive ? expression : expression.ToLower();
+                 string expressionToTest = OptionCaseSensitiveEvaluationActive ? expression : expression.ToLower();
 
-                if (expressionToTest.Equals("break"))
-                {
-                    isBreak = true;
-                    return lastResult;
-                }
+                 if (expressionToTest.Equals("break"))
+                 {
+                     isBreak = true;
+                     return lastResult;
+                 }
 
-                if (expressionToTest.Equals("continue"))
-                {
-                    isContinue = true;
-                    return lastResult;
-                }
+                 if (expressionToTest.Equals("continue"))
+                 {
+                     isContinue = true;
+                     return lastResult;
+                 }
 
-                expression = returnKeywordRegex.Replace(expression, match =>
-                {
-                    if (OptionCaseSensitiveEvaluationActive && !match.Value.StartsWith("return"))
-                        return match.Value;
+                 expression = returnKeywordRegex.Replace(expression, match =>
+                 {
+                     if (OptionCaseSensitiveEvaluationActive && !match.Value.StartsWith("return"))
+                         return match.Value;
 
-                    isReturn = true;
-                    return match.Value.Contains("(") ? "(" : string.Empty;
-                });
+                     isReturn = true;
+                     return match.Value.Contains("(") ? "(" : string.Empty;
+                 });
 
-                result = Evaluate(expression);
+                 result = Evaluate(expression);
 
-                return result;
-            }
+                 return result;
+             };
 
+            /*
             object ScriptExpressionEvaluate(ref int index)
             {
                 string expression = script.Substring(startOfExpression, index - startOfExpression);
@@ -716,7 +717,7 @@ namespace RegexDialog
                 return ManageJumpStatementsOrExpressionEval(expression);
             }
 
-            bool TryParseStringAndParenthis(ref int index)
+                        bool TryParseStringAndParenthis(ref int index)
             {
                 bool parsed = true;
                 Match internalStringMatch = stringBeginningRegex.Match(script.Substring(index));
@@ -736,8 +737,41 @@ namespace RegexDialog
 
                 return parsed;
             }
+            */
 
-            void ExecuteIfList()
+            Func<IntClass, object> ScriptExpressionEvaluate = (index) =>
+            {
+                string expression = script.Substring(startOfExpression, index.i - startOfExpression);
+
+                startOfExpression = index.i + 1;
+
+                return ManageJumpStatementsOrExpressionEval(expression);
+            };
+
+
+            Func<IntClass, bool> TryParseStringAndParenthis = (index) =>
+            {
+                bool parsed = true;
+                Match internalStringMatch = stringBeginningRegex.Match(script.Substring(index.i));
+
+                if (internalStringMatch.Success)
+                {
+                    string innerString = internalStringMatch.Value + GetCodeUntilEndOfString(script.Substring(index.i + internalStringMatch.Length), internalStringMatch);
+                    index.i += innerString.Length - 1;
+                }
+                else if (script[index.i] == '(')
+                {
+                    index.i++;
+                    GetExpressionsBetweenParenthis(script, ref index.i, false);
+                }
+                else
+                    parsed = false;
+
+                return parsed;
+            };
+
+
+            Action ExecuteIfList = () =>
             {
                 if (ifElseStatementsList.Count > 0)
                 {
@@ -748,7 +782,7 @@ namespace RegexDialog
 
                     ifElseStatementsList.Clear();
                 }
-            }
+            };
 
             int i = 0;
 
@@ -790,7 +824,11 @@ namespace RegexDialog
 
                         while (i < script.Length && continueExpressionParsing)
                         {
-                            if (TryParseStringAndParenthis(ref i)) { }
+                            IntClass myi = new IntClass(i);
+                            bool retVal = TryParseStringAndParenthis(myi);
+                            i = myi.i;
+                            //
+                            if (retVal) { }
                             else if (script.Length - i > 2 && script.Substring(i, 3).Equals("';'"))
                             {
                                 i += 2;
@@ -861,8 +899,10 @@ namespace RegexDialog
                         }
                         else if (keyword.Equals("for"))
                         {
-                            void forAction(int index)
-                            { if (keywordAttributes.Count > index && !keywordAttributes[index].Trim().Equals(string.Empty)) ManageJumpStatementsOrExpressionEval(keywordAttributes[index]); }
+                            Action<int> forAction = (index) =>
+                            {
+                                if (keywordAttributes.Count > index && !keywordAttributes[index].Trim().Equals(string.Empty)) ManageJumpStatementsOrExpressionEval(keywordAttributes[index]);
+                            };
 
                             for (forAction(0); !isReturn && (bool)ManageJumpStatementsOrExpressionEval(keywordAttributes[1]); forAction(2))
                             {
@@ -888,14 +928,20 @@ namespace RegexDialog
                 {
                     ExecuteIfList();
 
-                    if (TryParseStringAndParenthis(ref i)) { }
+                    IntClass myi = new IntClass(i);
+                    bool retVal = TryParseStringAndParenthis(myi);
+                    i = myi.i;
+                    //
+                    if (retVal) { }
                     else if (script.Length - i > 2 && script.Substring(i, 3).Equals("';'"))
                     {
                         i += 2;
                     }
                     else if (script[i] == ';')
                     {
-                        lastResult = ScriptExpressionEvaluate(ref i);
+                        IntClass myi2 = new IntClass(i);
+                        lastResult = ScriptExpressionEvaluate(myi2);
+                        i = myi2.i;
                     }
 
                     ifBlockEvaluatedState = IfBlockEvaluatedState.NoBlockEvaluated;
@@ -1055,7 +1101,8 @@ namespace RegexDialog
                     string type = numberMatch.Groups["type"].Value;
                     string numberNoType = numberMatch.Value.Replace(type, string.Empty);
 
-                    if (numberSuffixToParse.TryGetValue(type, out Func<string, object> parseFunc))
+                    Func<string, object> parseFunc;
+                    if (numberSuffixToParse.TryGetValue(type, out parseFunc))
                     {
                         stack.Push(parseFunc(numberNoType));
                     }
@@ -1126,12 +1173,15 @@ namespace RegexDialog
                 || stack.Peek() is ExpressionOperator)
             && !operatorsDictionary.ContainsKey(varFuncMatch.Value.Trim()))
             {
+                // object varValueToPush;
                 string varFuncName = varFuncMatch.Groups["name"].Value;
 
                 i += varFuncMatch.Length;
 
                 if (varFuncMatch.Groups["isfunction"].Success)
                 {
+                    object funcResult;
+
                     List<string> funcArgs = GetExpressionsBetweenParenthis(expr, ref i, true);
                     if (varFuncMatch.Groups["inObject"].Success)
                     {
@@ -1145,11 +1195,25 @@ namespace RegexDialog
                             Type objType = null;
 
                             if (obj != null && TypesToBlock.Contains(obj.GetType()))
+                            {
                                 throw new ExpressionEvaluatorSecurityException($"{obj.GetType().FullName} type is blocked");
-                            else if (obj is Type staticType && TypesToBlock.Contains(staticType))
-                                throw new ExpressionEvaluatorSecurityException($"{staticType.FullName} type is blocked");
-                            else if (obj is ClassOrTypeName classOrType && TypesToBlock.Contains(classOrType.Type))
-                                throw new ExpressionEvaluatorSecurityException($"{classOrType.Type} type is blocked");
+                            }
+                            else if (obj is Type)
+                            {
+                                Type staticType = obj as Type;
+                                if (TypesToBlock.Contains(staticType))
+                                {
+                                    throw new ExpressionEvaluatorSecurityException($"{staticType.FullName} type is blocked");
+                                }
+                            }
+                            else if (obj is ClassOrTypeName)
+                            {
+                                ClassOrTypeName classOrType = obj as ClassOrTypeName;
+                                if (TypesToBlock.Contains(classOrType.Type))
+                                {
+                                    throw new ExpressionEvaluatorSecurityException($"{classOrType.Type} type is blocked");
+                                }
+                            }
 
                             try
                             {
@@ -1219,7 +1283,7 @@ namespace RegexDialog
                             }
                         }
                     }
-                    else if (DefaultFunctions(varFuncName, funcArgs, out object funcResult))
+                    else if (DefaultFunctions(varFuncName, funcArgs, out funcResult))
                     {
                         stack.Push(funcResult);
                     }
@@ -1241,11 +1305,13 @@ namespace RegexDialog
                 }
                 else
                 {
-                    if (defaultVariables.TryGetValue(varFuncName, out object varValueToPush))
+                    object varValueToPush;
+                    dynamic cusVarValueToPush;
+                    if (defaultVariables.TryGetValue(varFuncName, out varValueToPush))
                     {
                         stack.Push(varValueToPush);
                     }
-                    else if ((Variables.TryGetValue(varFuncName, out dynamic cusVarValueToPush)
+                    else if ((Variables.TryGetValue(varFuncName, out cusVarValueToPush)
                             || (!varFuncMatch.Groups["inObject"].Success && varFuncMatch.Groups["assignationOperator"].Success))
                         && (cusVarValueToPush == null || !TypesToBlock.Contains(cusVarValueToPush.GetType())))
                     {
@@ -1308,11 +1374,27 @@ namespace RegexDialog
                             Type objType = null;
 
                             if (obj != null && TypesToBlock.Contains(obj.GetType()))
+                            {
                                 throw new ExpressionEvaluatorSecurityException($"{obj.GetType().FullName} type is blocked");
-                            else if (obj is Type staticType && TypesToBlock.Contains(staticType))
-                                throw new ExpressionEvaluatorSecurityException($"{staticType.FullName} type is blocked");
-                            else if (obj is ClassOrTypeName classOrType && TypesToBlock.Contains(classOrType.Type))
-                                throw new ExpressionEvaluatorSecurityException($"{classOrType.Type} type is blocked");
+
+                            }
+                            else if (obj is Type)
+                            {
+                                Type staticType = obj as Type;
+                                if (TypesToBlock.Contains(staticType))
+                                {
+                                    throw new ExpressionEvaluatorSecurityException($"{staticType.FullName} type is blocked");
+                                }
+                            }
+
+                            else if (obj is ClassOrTypeName)
+                            {
+                                ClassOrTypeName classOrType = obj as ClassOrTypeName;
+                                if (TypesToBlock.Contains(classOrType.Type))
+                                {
+                                    throw new ExpressionEvaluatorSecurityException($"{classOrType.Type} type is blocked");
+                                }
+                            }
 
                             try
                             {
@@ -1552,17 +1634,24 @@ namespace RegexDialog
 
         private void CorrectStackWithUnaryPlusOrMinusBeforeParenthisIfNecessary(Stack<object> stack)
         {
-            if (stack.Count > 0 && stack.Peek() is ExpressionOperator op && (op == ExpressionOperator.Plus || stack.Peek() is ExpressionOperator.Minus))
+            if (stack.Count > 0 && stack.Peek() is ExpressionOperator)
             {
-                stack.Pop();
+                ExpressionOperator op = (ExpressionOperator)stack.Peek();
+                // ORIGINAL CODE
+                // if (stack.Count > 0 && stack.Peek() is ExpressionOperator op && (op == ExpressionOperator.Plus || stack.Peek() is ExpressionOperator.Minus))
+                // TOCHECK: is it correct??
+                if (op == ExpressionOperator.Plus || op == ExpressionOperator.Minus)
+                {
+                    stack.Pop();
 
-                if (stack.Count == 0 || stack.Peek() is ExpressionOperator)
-                {
-                    stack.Push(op == ExpressionOperator.Plus ? ExpressionOperator.UnaryPlus : ExpressionOperator.UnaryMinus);
-                }
-                else
-                {
-                    stack.Push(op);
+                    if (stack.Count == 0 || stack.Peek() is ExpressionOperator)
+                    {
+                        stack.Push(op == ExpressionOperator.Plus ? ExpressionOperator.UnaryPlus : ExpressionOperator.UnaryMinus);
+                    }
+                    else
+                    {
+                        stack.Push(op);
+                    }
                 }
             }
         }
@@ -1720,8 +1809,8 @@ namespace RegexDialog
                     else if (expr.Substring(i, expr.Length - i)[0] == '\\')
                     {
                         i++;
-
-                        if (stringEscapedCharDict.TryGetValue(expr.Substring(i, expr.Length - i)[0], out string escapedString))
+                        string escapedString;
+                        if (stringEscapedCharDict.TryGetValue(expr.Substring(i, expr.Length - i)[0], out escapedString))
                         {
                             resultString += escapedString;
                             i++;
@@ -1997,8 +2086,9 @@ namespace RegexDialog
 
         private BindingFlags DetermineInstanceOrStatic(ref Type objType, ref object obj)
         {
-            if (obj is ClassOrTypeName classOrTypeName)
+            if (obj is ClassOrTypeName)
             {
+                ClassOrTypeName classOrTypeName = obj as ClassOrTypeName;
                 objType = classOrTypeName.Type;
                 obj = null;
                 return StaticBindingFlag;
@@ -2120,15 +2210,19 @@ namespace RegexDialog
         {
             bool functionExists = true;
 
-            if (simpleDoubleMathFuncsDictionary.TryGetValue(name, out Func<double, double> func))
+            Func<double, double> func;
+            Func<double, double, double> func2;
+            Func<ExpressionEvaluator, List<string>, object> complexFunc;
+
+            if (simpleDoubleMathFuncsDictionary.TryGetValue(name, out func))
             {
                 result = func(Convert.ToDouble(Evaluate(args[0])));
             }
-            else if (doubleDoubleMathFuncsDictionary.TryGetValue(name, out Func<double, double, double> func2))
+            else if (doubleDoubleMathFuncsDictionary.TryGetValue(name, out func2))
             {
                 result = func2(Convert.ToDouble(Evaluate(args[0])), Convert.ToDouble(Evaluate(args[1])));
             }
-            else if (complexStandardFuncsDictionary.TryGetValue(name, out Func<ExpressionEvaluator, List<string>, object> complexFunc))
+            else if (complexStandardFuncsDictionary.TryGetValue(name, out complexFunc))
             {
                 result = complexFunc(this, args);
             }

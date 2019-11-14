@@ -13,6 +13,6 @@ namespace RegexDialog
             i = initvalue;
         }
 
-        public int i { get; set; }
+        public int i;
     }
 }

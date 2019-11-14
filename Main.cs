@@ -1,5 +1,4 @@
-﻿using CSharpRegexTools4Npp.PluginInfrastructure;
-using RegexDialog;
+﻿using RegexDialog;
 using System;
 using System.Drawing;
 using System.Linq;

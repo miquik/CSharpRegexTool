@@ -1,21 +1,67 @@
-﻿using CSharpRegexTools4Npp.PluginInfrastructure;
+﻿using EnvDTE;
 using System;
 using System.Text;
 
-namespace CSharpRegexTools4Npp
+namespace RegexDialog
 {
     public class BNpp
     {
-        public static NotepadPPGateway NotepadPP { get; private set; } = new NotepadPPGateway();
+        private _DTE _dte;
+        private Document _activeDocument = null;
+        private TextDocument _textDocument = null;
+
+        // public static NotepadPPGateway NotepadPP { get; private set; } = new NotepadPPGateway();
+        public _DTE DTE
+        {
+            get { return _dte; }
+            set
+            {
+                _dte = value;
+            }
+        }
+
+        public Document ActiveDocument
+        {
+            get
+            {
+                if (_activeDocument == null)
+                {
+                    if (_dte != null)
+                    {
+                        _activeDocument = _dte.ActiveDocument;
+                    }
+                }
+                return _activeDocument;
+            }
+        }
+
+        public TextDocument ActiveTextDocument
+        {
+            get
+            {
+                if (_textDocument == null)
+                {
+                    if (_activeDocument != null)
+                    {
+                        _textDocument = _activeDocument.Object() as TextDocument;
+                    }
+                }
+                return _textDocument;
+            }
+        }
+
+
 
         /// <summary>
         /// Récupère les caractères de fin de lignes courant
         /// !!! Attention pour le moment bug. !!! Enlève la coloration syntaxique du fichier courant
         /// </summary>
-        public static string CurrentEOL
+        public string CurrentEOL
         {
             get
             {
+                return Environment.NewLine;
+                /*
                 string eol = "\n";
                 int value = Win32.SendMessage(PluginBase.nppData._nppHandle, SciMsg.SCI_GETEOLMODE, 0, 0).ToInt32();
 
@@ -30,8 +76,8 @@ namespace CSharpRegexTools4Npp
                     default:
                         break;
                 }
-
                 return eol;
+                */
             }
         }
 
@@ -39,20 +85,37 @@ namespace CSharpRegexTools4Npp
         /// Récupère ou attribue le texte complet du tab Notepad++ courant
         /// <br/>(Gère la conversion d'encodage Npp/C#)
         /// </summary>
-        public static string Text
+        public string Text
         {
             get
             {
+                /*
                 IScintillaGateway scintilla = new ScintillaGateway(PluginBase.GetCurrentScintilla());
                 // Multiply by 2 to managed 2 bytes encoded chars
                 return BEncoding.GetUtf8TextFromScintillaText(scintilla.GetText(scintilla.GetTextLength() * 2));
+                */
+                if (ActiveTextDocument == null)
+                {
+                    return String.Empty;
+                }
+                var text = ActiveTextDocument.CreateEditPoint(ActiveTextDocument.StartPoint).GetText(ActiveTextDocument.EndPoint);
+                return text;
             }
 
             set
             {
+                if (ActiveTextDocument == null)
+                {
+                    return;
+                }
+                ActiveTextDocument.Selection.SelectAll();
+                ActiveTextDocument.Selection.Insert(value, (int)vsInsertFlags.vsInsertFlagsContainNewText);
+                // ActiveTextDocument.CreateEditPoint(ActiveTextDocument.StartPoint).(ActiveTextDocument.EndPoint);
+                /*
                 IScintillaGateway scintilla = new ScintillaGateway(PluginBase.GetCurrentScintilla());
                 string text = BEncoding.GetScintillaTextFromUtf8Text(value, out int length);
                 scintilla.SetText(text);
+                */
             }
         }
 
@@ -60,16 +123,28 @@ namespace CSharpRegexTools4Npp
         /// Récupère ou attribue le début de la sélection de texte
         /// <br/>(Gère la conversion d'encodage Npp/C#)
         /// </summary>
-        public static int SelectionStart
+        public int SelectionStart
         {
             get
             {
-                return new ScintillaGateway(PluginBase.GetCurrentScintilla()).GetSelectionStart();
+                // return new ScintillaGateway(PluginBase.GetCurrentScintilla()).GetSelectionStart();
+                if (ActiveTextDocument == null)
+                {
+                    return -1;
+                }
+                return ActiveTextDocument.StartPoint.AbsoluteCharOffset;
             }
 
             set
             {
-                new ScintillaGateway(PluginBase.GetCurrentScintilla()).SetSelectionStart(new Position(value));
+                if (ActiveTextDocument == null)
+                {
+                    return;
+                }
+                // TODO
+                // new ScintillaGateway(PluginBase.GetCurrentScintilla()).SetSelectionStart(new Position(value));
+                // ActiveTextDocument.Selection.Mo
+                // TextRange rng = ActiveTextDocument.Selection.TextRanges.Item(0);                
             }
         }
 
@@ -78,19 +153,33 @@ namespace CSharpRegexTools4Npp
         /// <br/>si aucun texte n'est sélectionné SelectionEnd = SelectionStart
         /// <br/>(Gère la conversion d'encodage Npp/C#)
         /// </summary>
-        public static int SelectionEnd
+        public int SelectionEnd
         {
             get
             {
+                /*
                 int curPos = (int)Win32.SendMessage(PluginBase.GetCurrentScintilla(), SciMsg.SCI_GETSELECTIONEND, 0, 0);
                 IScintillaGateway scintilla = new ScintillaGateway(PluginBase.GetCurrentScintilla());
                 string beginingText = scintilla.GetText(curPos);
                 string text = BEncoding.GetScintillaTextFromUtf8Text(beginingText, out int length);
                 return length;
+                */
+                if (ActiveTextDocument == null)
+                {
+                    return -1;
+                }
+                return ActiveTextDocument.EndPoint.AbsoluteCharOffset;
             }
 
             set
             {
+                if (ActiveTextDocument == null)
+                {
+                    return;
+                }
+                // TODO
+
+                /*
                 string allText = Text;
                 int endToUse = value;
 
@@ -107,6 +196,7 @@ namespace CSharpRegexTools4Npp
                 string afterTextInDefaultEncoding = BEncoding.GetScintillaTextFromUtf8Text(afterText, out int defaultEnd);
 
                 Win32.SendMessage(PluginBase.GetCurrentScintilla(), SciMsg.SCI_SETSELECTIONEND, defaultEnd, 0);
+                */
             }
         }
 
@@ -115,7 +205,7 @@ namespace CSharpRegexTools4Npp
         /// <br/>Si aucun texte n'est sélectionné SelectionEnd = 0
         /// <br/>(Gère la conversion d'encodage Npp/C#)
         /// </summary>
-        public static int SelectionLength
+        public int SelectionLength
         {
             get
             {
@@ -132,21 +222,35 @@ namespace CSharpRegexTools4Npp
         /// Récupère ou remplace le texte actuellement sélectionné
         /// <br/>(Gère la conversion d'encodage Npp/C#)
         /// </summary>
-        public static string SelectedText
+        public string SelectedText
         {
             get
             {
+                if (ActiveTextDocument == null)
+                {
+                    return String.Empty;
+                }
+                return ActiveTextDocument.Selection.Text;
+                /*
                 IScintillaGateway scintillaGateway = new ScintillaGateway(PluginBase.GetCurrentScintilla());
                 int start = scintillaGateway.GetSelectionStart().Value;
                 int end = scintillaGateway.GetSelectionEnd().Value;
 
                 return end - start == 0 ? "" : Text.Substring(start, end - start);
+                */
             }
 
             set
             {
+                if (ActiveTextDocument == null)
+                {
+                    return;
+                }
+                ActiveTextDocument.Selection.Text = value;
+                /*
                 string defaultNewText = BEncoding.GetScintillaTextFromUtf8Text(value);
                 Win32.SendMessage(PluginBase.GetCurrentScintilla(), SciMsg.SCI_REPLACESEL, 0, defaultNewText);
+                */
             }
         }
 
@@ -157,7 +261,7 @@ namespace CSharpRegexTools4Npp
         /// </summary>
         /// <param name="start">Position du début du texte à sélectionner dans le texte entier<br/> Si plus petit que 0 -> forcé à zéro<br/> Si plus grand que Text.Length -> forcé à Text.Length</param>
         /// <param name="end">Position de fin du texte à sélectionner dans le texte entier<br/> Si plus petit que 0 -> forcé à zéro<br/> Si plus grand que Text.Length -> forcé à Text.Length<br/> Si plus petit que start -> forcé à start</param>
-        public static void SelectTextAndShow(int start, int end)
+        public void SelectTextAndShow(int start, int end)
         {
             string allText = Text;
             int startToUse = start;
@@ -185,13 +289,15 @@ namespace CSharpRegexTools4Npp
                 endToUse = startToUse;
             }
 
+            int defaultStart, defaultEnd;
             string beforeText = allText.Substring(0, startToUse);
-            string beforeTextInDefaultEncoding = BEncoding.GetScintillaTextFromUtf8Text(beforeText, out int defaultStart);
+            // string beforeTextInDefaultEncoding = BEncoding.GetScintillaTextFromUtf8Text(beforeText, out defaultStart);
             string endText = allText.Substring(0, endToUse);
-            string endTextInDefaultEncoding = BEncoding.GetScintillaTextFromUtf8Text(endText, out int defaultEnd);
+            // string endTextInDefaultEncoding = BEncoding.GetScintillaTextFromUtf8Text(endText, out defaultEnd);
 
-            Win32.SendMessage(PluginBase.GetCurrentScintilla(), SciMsg.SCI_GOTOPOS, defaultStart, 0);
-            Win32.SendMessage(PluginBase.GetCurrentScintilla(), SciMsg.SCI_SETSELECTIONEND, defaultEnd, 0);
+            // TODO
+            // Win32.SendMessage(PluginBase.GetCurrentScintilla(), SciMsg.SCI_GOTOPOS, defaultStart, 0);
+            // Win32.SendMessage(PluginBase.GetCurrentScintilla(), SciMsg.SCI_SETSELECTIONEND, defaultEnd, 0);
         }
 
         /// <summary>
@@ -201,7 +307,7 @@ namespace CSharpRegexTools4Npp
         /// <param name="start">Position du début du texte à sélectionner dans le texte entier<br/> Si plus petit que 0 -> forcé à zéro<br/> Si plus grand que Text.Length -> forcé à Text.Length</param>
         /// <param name="end">Position de fin du texte à sélectionner dans le texte entier<br/> Si plus petit que 0 -> forcé à zéro<br/> Si plus grand que Text.Length -> forcé à Text.Length<br/> Si plus petit que start -> forcé à start</param>
 
-        public static void AddSelection(int start, int end)
+        public void AddSelection(int start, int end)
         {
             string allText = Text;
             int startToUse = start;
@@ -229,12 +335,14 @@ namespace CSharpRegexTools4Npp
                 endToUse = startToUse;
             }
 
+            int defaultStart, defaultEnd;
             string beforeText = allText.Substring(0, startToUse);
-            string beforeTextInDefaultEncoding = BEncoding.GetScintillaTextFromUtf8Text(beforeText, out int defaultStart);
+            // string beforeTextInDefaultEncoding = BEncoding.GetScintillaTextFromUtf8Text(beforeText, out defaultStart);
             string endText = allText.Substring(0, endToUse);
-            string endTextInDefaultEncoding = BEncoding.GetScintillaTextFromUtf8Text(endText, out int defaultEnd);
+            // string endTextInDefaultEncoding = BEncoding.GetScintillaTextFromUtf8Text(endText, out defaultEnd);
 
-            Win32.SendMessage(PluginBase.GetCurrentScintilla(), SciMsg.SCI_ADDSELECTION, defaultStart, defaultEnd);
+            // TODO
+            // Win32.SendMessage(PluginBase.GetCurrentScintilla(), SciMsg.SCI_ADDSELECTION, defaultStart, defaultEnd);
         }
 
 
@@ -243,7 +351,7 @@ namespace CSharpRegexTools4Npp
         /// </summary>
         /// <param name="lineNb">Numéro de la ligne dont on veut récupérer le texte</param>
         /// <returns>Le texte de la ligne spécifiée</returns>
-        public static string GetLineText(int lineNb)
+        public string GetLineText(int lineNb)
         {
             string result = "";
 
@@ -261,6 +369,7 @@ namespace CSharpRegexTools4Npp
     /// Offre des fonctions simples pour convertir l'encodage d'un texte
     /// entre l'encodage du document courant dans Notepad++ et l'encodage en C# (UTF8)
     /// </summary>
+    /*
     internal static class BEncoding
     {
         private static Encoding utf8 = Encoding.UTF8;
@@ -341,6 +450,7 @@ namespace CSharpRegexTools4Npp
             }
 
             return result;
-        }
+        }       
     }
+    */
 }

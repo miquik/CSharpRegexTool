@@ -17,6 +17,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using System.Xml;
+using Microsoft.VisualStudio.Shell;
+
 
 namespace RegexDialog
 {
@@ -42,6 +44,8 @@ namespace RegexDialog
         private string lastMatchesText = "";
         private int lastSelectionStart = 0;
         private int lastSelectionLength = 0;
+
+        private BNpp _bnpp = null;
 
         private bool mustSelectEditor = false;
 
@@ -159,7 +163,13 @@ namespace RegexDialog
         public RegExToolDialog()
         {
             InitializeComponent();
+            Init();
+        }
 
+        // EnvDTE._DTE _dte
+        public RegExToolDialog(EnvDTE._DTE dte)
+        {
+            InitializeComponent();
             Init();
         }
 

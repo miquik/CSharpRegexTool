@@ -9,6 +9,7 @@ using System.ComponentModel.Design;
 using System.Globalization;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using EnvDTE;
 
 namespace CSharpRegexTool
 {
@@ -100,6 +101,14 @@ namespace CSharpRegexTool
                 throw new NotSupportedException("Cannot create tool window");
             }
 
+            var dte = this.ServiceProvider.GetService(typeof(_DTE)) as _DTE;
+            if (dte == null)
+            {
+                throw new Exception("Cannot get DTE");
+            }
+            // pass DTE to usercontrol
+            ((RegexToolWindow)window).SetDTE(dte);
+            //
             IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
             Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
         }
