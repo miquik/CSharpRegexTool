@@ -64,7 +64,8 @@ namespace RegexDialog
         {
             if (key == null) throw new ArgumentNullException("key");
 
-            Dictionary.TryGetValue(key, out TValue value);
+            TValue value;
+            Dictionary.TryGetValue(key, out value);
             var removed = Dictionary.Remove(key);
             if (removed)
                 //OnCollectionChanged(NotifyCollectionChangedAction.Remove, new KeyValuePair<TKey, TValue>(key, value));
@@ -194,7 +195,8 @@ namespace RegexDialog
         {
             if (key == null) throw new ArgumentNullException("key");
 
-            if (Dictionary.TryGetValue(key, out TValue item))
+            TValue item;
+            if (Dictionary.TryGetValue(key, out item))
             {
                 if (add) throw new ArgumentException("An item with the same key has already been added.");
                 if (Equals(item, value)) return;

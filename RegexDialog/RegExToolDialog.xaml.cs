@@ -438,6 +438,7 @@ namespace RegexDialog
             }
         }
 
+        /*
         private List<RegexResult> GetMatchesFor(Regex regex, ref int cap, ref int idx, string text, string fileName = "", int selectionIndex = 0)
         {
             MatchCollection matches = regex.Matches(text);
@@ -464,7 +465,7 @@ namespace RegexDialog
             idx = i;
             return ml;
         }
-
+        */
 
         private void ShowMatches()
         {
@@ -481,6 +482,31 @@ namespace RegexDialog
                     int countAllCaptures = 0;
 
                     Regex regex = new Regex(RegexEditor.Text, GetRegexOptions());
+
+                    Func<string, string, int, List<RegexResult>> GetMatchesFor = (string text, string fileName, int selectionIndex) =>
+                    {
+                        MatchCollection matches = regex.Matches(text);
+                        var ml = matches
+                            .Cast<Match>()
+                            .ToList()
+                            .FindAll(delegate (Match m)
+                            {
+                                countAllCaptures++;
+
+                                return m.Length > 0 || Config.Instance.ShowEmptyMatches;
+                            })
+                            .ConvertAll(delegate (Match m)
+                            {
+                                RegexResult result = new RegexMatchResult(regex, m, i, fileName, selectionIndex);
+
+                                i++;
+
+                                return result;
+                            });
+                        return ml;
+                    };
+
+
                     if (Config.Instance.TextSourceOn == RegexTextSource.Directory)
                     {
                         int ft = 0;
@@ -491,7 +517,7 @@ namespace RegexDialog
                             {
                                 ft++;
 
-                                List<RegexResult> temp = GetMatchesFor(regex, ref countAllCaptures, ref i, File.ReadAllText(fileName), fileName);
+                                List<RegexResult> temp = GetMatchesFor(File.ReadAllText(fileName), fileName, 0);
 
                                 if (temp.Count > 0)
                                     ff++;
@@ -514,11 +540,11 @@ namespace RegexDialog
                             lastSelectionStart = GetSelectionStartIndex?.Invoke() ?? 0;
                             lastSelectionLength = GetSelectionLength?.Invoke() ?? 0;
 
-                            MatchResultsTreeView.ItemsSource = GetMatchesFor(regex, ref countAllCaptures, ref i, GetCurrentText(), selectionIndex: lastSelectionStart);
+                            MatchResultsTreeView.ItemsSource = GetMatchesFor(GetCurrentText(), "", lastSelectionStart);
                         }
                         else
                         {
-                            MatchResultsTreeView.ItemsSource = GetMatchesFor(regex, ref countAllCaptures, ref i, GetCurrentText());
+                            MatchResultsTreeView.ItemsSource = GetMatchesFor(GetCurrentText(), "", 0);
                         }
 
                         MatchesResultLabel.Content = $"{i} matches [Index,Length] + {(countAllCaptures - i)} empties matches";
@@ -746,6 +772,7 @@ namespace RegexDialog
             }
         }
 
+        /*
         private void Extract(Regex regex, StringBuilder sb, dynamic script, ref int gi, ref int fi, string text, string fileName = "")
         {
             List<Match> matches = regex.Matches(text)
@@ -778,7 +805,7 @@ namespace RegexDialog
                 fi++;
             }
         }
-
+        */
 
         private void ExtractMatchesButton_Click(object sender, RoutedEventArgs e)
         {
@@ -793,19 +820,50 @@ namespace RegexDialog
                 if (CSharpReplaceCheckbox.IsChecked.GetValueOrDefault())
                     script = CSScript.Evaluator.LoadCode(Res.CSharpReplaceContainer.Replace("//code", ReplaceEditor.Text));
 
+                Action<string, string> Extract = (text, fileName) =>
+                {
+                    List<Match> matches = regex.Matches(text)
+                        .Cast<Match>()
+                        .ToList();
+
+                    if (matches.Count > 0 || Config.Instance.TextSourceDirectoryShowNotMatchedFiles)
+                    {
+                        if (Config.Instance.PrintFileNameWhenExtract)
+                            sb.AppendLine("\r\n" + fileName);
+
+                        if (CSharpReplaceCheckbox.IsChecked.GetValueOrDefault())
+                        {
+                            int index = 0;
+
+                            matches.ForEach(match =>
+                            {
+                                sb.Append(script.Replace(match, index, fileName, globalIndex, fileIndex));
+                                globalIndex++;
+                                index++;
+                            });
+                        }
+                        else
+                        {
+                            matches.ForEach(match => sb.AppendLine(match.Value));
+                        }
+
+                        fileIndex++;
+                    }
+                };
+
+
 
                 if (Config.Instance.TextSourceOn == RegexTextSource.Directory)
                 {
                     GetFiles().ForEach(fileName =>
                     {
-                        Extract(regex, sb, script, ref globalIndex, ref fileIndex, File.ReadAllText(fileName), fileName);
+                        Extract(File.ReadAllText(fileName), fileName);
                     });
                 }
                 else
                 {
-                    Extract(regex, sb, script, ref globalIndex, ref fileIndex, GetCurrentText(), GetCurrentFileName?.Invoke() ?? string.Empty);
+                    Extract(GetCurrentText(), GetCurrentFileName?.Invoke() ?? string.Empty);
                 }
-
                 try
                 {
                     SetTextInNew(sb.ToString());

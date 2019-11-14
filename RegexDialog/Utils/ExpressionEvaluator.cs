@@ -662,89 +662,6 @@ namespace RegexDialog
             }
         }
 
-
-        object ManageJumpStatementsOrExpressionEval(string expression, ref bool isBreak, ref bool isContinue, ref bool isReturn, object lastResult)
-        {
-            string baseExpression = expression;
-            object result = null;
-
-            expression = expression.Trim();
-
-            string expressionToTest = OptionCaseSensitiveEvaluationActive ? expression : expression.ToLower();
-
-            if (expressionToTest.Equals("break"))
-            {
-                isBreak = true;
-                return lastResult;
-            }
-
-            if (expressionToTest.Equals("continue"))
-            {
-                isContinue = true;
-                return lastResult;
-            }
-
-            bool isr = isReturn;
-            expression = returnKeywordRegex.Replace(expression, match =>
-            {
-                if (OptionCaseSensitiveEvaluationActive && !match.Value.StartsWith("return"))
-                    return match.Value;
-
-                isr = true;
-                return match.Value.Contains("(") ? "(" : string.Empty;
-            });
-            isReturn = isr;
-
-            result = Evaluate(expression);
-            return result;
-        }
-
-        object ScriptExpressionEvaluate(string script, ref int startOfExpression, ref int index)
-        {
-            string expression = script.Substring(startOfExpression, index - startOfExpression);
-
-            startOfExpression = index + 1;
-
-            return ManageJumpStatementsOrExpressionEval(expression);
-        }
-
-        bool TryParseStringAndParenthis(ref int index)
-        {
-            bool parsed = true;
-            Match internalStringMatch = stringBeginningRegex.Match(script.Substring(index));
-
-            if (internalStringMatch.Success)
-            {
-                string innerString = internalStringMatch.Value + GetCodeUntilEndOfString(script.Substring(index + internalStringMatch.Length), internalStringMatch);
-                index += innerString.Length - 1;
-            }
-            else if (script[index] == '(')
-            {
-                index++;
-                GetExpressionsBetweenParenthis(script, ref index, false);
-            }
-            else
-                parsed = false;
-
-            return parsed;
-        }
-
-        void ExecuteIfList()
-        {
-            if (ifElseStatementsList.Count > 0)
-            {
-                string ifScript = ifElseStatementsList.Find(statement => (bool)ManageJumpStatementsOrExpressionEval(statement[0]))?[1];
-
-                if (!string.IsNullOrEmpty(ifScript))
-                    lastResult = ScriptEvaluate(ifScript, ref isReturn, ref isBreak, ref isContinue);
-
-                ifElseStatementsList.Clear();
-            }
-        }
-
-
-
-
         private object ScriptEvaluate(string script, ref bool valueReturned, ref bool breakCalled, ref bool continueCalled)
         {
             object lastResult = null;
@@ -755,6 +672,83 @@ namespace RegexDialog
             IfBlockEvaluatedState ifBlockEvaluatedState = IfBlockEvaluatedState.NoBlockEvaluated;
             List<List<string>> ifElseStatementsList = new List<List<string>>();
 
+            object ManageJumpStatementsOrExpressionEval(string expression)
+            {
+                string baseExpression = expression;
+                object result = null;
+
+                expression = expression.Trim();
+
+                string expressionToTest = OptionCaseSensitiveEvaluationActive ? expression : expression.ToLower();
+
+                if (expressionToTest.Equals("break"))
+                {
+                    isBreak = true;
+                    return lastResult;
+                }
+
+                if (expressionToTest.Equals("continue"))
+                {
+                    isContinue = true;
+                    return lastResult;
+                }
+
+                expression = returnKeywordRegex.Replace(expression, match =>
+                {
+                    if (OptionCaseSensitiveEvaluationActive && !match.Value.StartsWith("return"))
+                        return match.Value;
+
+                    isReturn = true;
+                    return match.Value.Contains("(") ? "(" : string.Empty;
+                });
+
+                result = Evaluate(expression);
+
+                return result;
+            }
+
+            object ScriptExpressionEvaluate(ref int index)
+            {
+                string expression = script.Substring(startOfExpression, index - startOfExpression);
+
+                startOfExpression = index + 1;
+
+                return ManageJumpStatementsOrExpressionEval(expression);
+            }
+
+            bool TryParseStringAndParenthis(ref int index)
+            {
+                bool parsed = true;
+                Match internalStringMatch = stringBeginningRegex.Match(script.Substring(index));
+
+                if (internalStringMatch.Success)
+                {
+                    string innerString = internalStringMatch.Value + GetCodeUntilEndOfString(script.Substring(index + internalStringMatch.Length), internalStringMatch);
+                    index += innerString.Length - 1;
+                }
+                else if (script[index] == '(')
+                {
+                    index++;
+                    GetExpressionsBetweenParenthis(script, ref index, false);
+                }
+                else
+                    parsed = false;
+
+                return parsed;
+            }
+
+            void ExecuteIfList()
+            {
+                if (ifElseStatementsList.Count > 0)
+                {
+                    string ifScript = ifElseStatementsList.Find(statement => (bool)ManageJumpStatementsOrExpressionEval(statement[0]))?[1];
+
+                    if (!string.IsNullOrEmpty(ifScript))
+                        lastResult = ScriptEvaluate(ifScript, ref isReturn, ref isBreak, ref isContinue);
+
+                    ifElseStatementsList.Clear();
+                }
+            }
 
             int i = 0;
 

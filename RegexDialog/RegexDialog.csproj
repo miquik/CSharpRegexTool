@@ -259,6 +259,7 @@
     <Compile Include="Model\RegexCaptureResult.cs" />
     <Compile Include="Model\RegexGroupResult.cs" />
     <Compile Include="Utils\ExpressionEvaluator.cs" />
+    <Compile Include="Utils\IntClass.cs" />
     <Compile Include="Utils\ObservableDictionary.cs" />
     <Compile Include="Utils\PathUtils.cs" />
     <Compile Include="Model\RegexLanguageElement.cs" />
