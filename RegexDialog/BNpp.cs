@@ -41,9 +41,9 @@ namespace RegexDialog
             {
                 if (_textDocument == null)
                 {
-                    if (_activeDocument != null)
+                    if (ActiveDocument != null)
                     {
-                        _textDocument = _activeDocument.Object() as TextDocument;
+                        _textDocument = ActiveDocument.Object() as TextDocument;
                     }
                 }
                 return _textDocument;
@@ -99,7 +99,7 @@ namespace RegexDialog
                     return String.Empty;
                 }
                 var text = ActiveTextDocument.CreateEditPoint(ActiveTextDocument.StartPoint).GetText(ActiveTextDocument.EndPoint);
-                return text;
+                return text.Replace(Environment.NewLine, "\n");
             }
 
             set
@@ -132,7 +132,17 @@ namespace RegexDialog
                 {
                     return -1;
                 }
-                return ActiveTextDocument.StartPoint.AbsoluteCharOffset;
+                if (ActiveTextDocument.Selection.IsEmpty)
+                {
+                    return 1;
+                }
+                // just first TextRange will be consider
+                TextRange rng = ActiveTextDocument.Selection.TextRanges.Item(1);
+                if (rng == null)
+                {
+                    return 1;
+                }
+                return rng.StartPoint.AbsoluteCharOffset;
             }
 
             set
@@ -168,7 +178,17 @@ namespace RegexDialog
                 {
                     return -1;
                 }
-                return ActiveTextDocument.EndPoint.AbsoluteCharOffset;
+                if (ActiveTextDocument.Selection.IsEmpty)
+                {
+                    return 1;
+                }
+                // just first TextRange will be consider
+                TextRange rng = ActiveTextDocument.Selection.TextRanges.Item(1);
+                if (rng == null)
+                {
+                    return 1;
+                }
+                return rng.EndPoint.AbsoluteCharOffset;
             }
 
             set
@@ -254,6 +274,38 @@ namespace RegexDialog
             }
         }
 
+        private static int CountLines(string str)
+        {
+            if (str == null)
+                throw new ArgumentNullException("str");
+            if (str == string.Empty)
+                return 0;
+            int index = -1;
+            int count = 0;
+            while (-1 != (index = str.IndexOf(Environment.NewLine, index + 1)))
+                count++;
+
+            return count + 1;
+        }
+
+        // HACK
+        private static int CorrectOffset(string str)
+        {
+            string completeStr = str;
+            if (str.EndsWith("\r") && Environment.NewLine == "\r\n")
+            {
+                completeStr = str + '\n';
+            }
+
+            int index = -1;
+            int count = 0;
+            while (-1 != (index = completeStr.IndexOf(Environment.NewLine, index + 1)))
+            {
+                count++;
+            }
+            return completeStr.Length - count;
+        }
+
         /// <summary>
         /// Sélectionne dans le tab Notepad++ courant le texte entre start et end
         /// et positionne le scroll pour voir la sélection.
@@ -267,20 +319,20 @@ namespace RegexDialog
             int startToUse = start;
             int endToUse = end;
 
-            if (start < 0)
+            if (startToUse < 0)
             {
                 startToUse = 0;
             }
-            else if (start > allText.Length)
+            else if (startToUse > allText.Length)
             {
                 startToUse = allText.Length;
             }
 
-            if (end < 0)
+            if (endToUse < 0)
             {
                 endToUse = 0;
             }
-            else if (end > allText.Length)
+            else if (endToUse > allText.Length)
             {
                 endToUse = allText.Length;
             }
@@ -290,10 +342,39 @@ namespace RegexDialog
             }
 
             int defaultStart, defaultEnd;
+            // string beforeText = allText.Substring(0, startToUse);
+            // defaultStart = CorrectOffset(beforeText) + 1; 
+            defaultStart = startToUse + 1;
+            // string endText = allText.Substring(0, endToUse);
+            // defaultEnd = CorrectOffset(endText);
+            defaultEnd = endToUse + 1;
+
+            /*
+            int defaultStart, defaultEnd;
             string beforeText = allText.Substring(0, startToUse);
+            defaultStart = CountLines(beforeText) - 1;
             // string beforeTextInDefaultEncoding = BEncoding.GetScintillaTextFromUtf8Text(beforeText, out defaultStart);
             string endText = allText.Substring(0, endToUse);
-            // string endTextInDefaultEncoding = BEncoding.GetScintillaTextFromUtf8Text(endText, out defaultEnd);
+            defaultEnd = CountLines(endText) - 1;
+            */
+            /*
+            var result = Encoding.Default.GetString(Encoding.UTF8.GetBytes(endText));
+            Encoding ANSI = Encoding.GetEncoding(1252);
+            byte[] utf8Bytes = Encoding.UTF8.GetBytes(endText);
+            byte[] ansiBytes = Encoding.Convert(Encoding.UTF8, ANSI, utf8Bytes);
+
+            var result2 = ANSI.GetString(ansiBytes);
+            */
+
+            // string endTextInDefaultEncoding = BEncoding.GetScintillaTextFromUtf8Text(endText, out defaultEnd);            
+            TextSelection selection = ActiveTextDocument.Selection as TextSelection;
+            if (selection != null)
+            {
+                // ActiveDocument.Activate();
+                var pt = selection.ActivePoint;
+                selection.MoveToAbsoluteOffset(defaultStart, false);
+                selection.MoveToAbsoluteOffset(defaultEnd, true);
+            }
 
             // TODO
             // Win32.SendMessage(PluginBase.GetCurrentScintilla(), SciMsg.SCI_GOTOPOS, defaultStart, 0);
@@ -337,8 +418,10 @@ namespace RegexDialog
 
             int defaultStart, defaultEnd;
             string beforeText = allText.Substring(0, startToUse);
+            defaultStart = beforeText.Length;
             // string beforeTextInDefaultEncoding = BEncoding.GetScintillaTextFromUtf8Text(beforeText, out defaultStart);
             string endText = allText.Substring(0, endToUse);
+            defaultEnd = endText.Length;
             // string endTextInDefaultEncoding = BEncoding.GetScintillaTextFromUtf8Text(endText, out defaultEnd);
 
             // TODO

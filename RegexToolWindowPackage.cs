@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.Win32;
+using EnvDTE;
 
 namespace CSharpRegexTool
 {
@@ -67,6 +68,7 @@ namespace CSharpRegexTool
         /// </summary>
         protected override void Initialize()
         {
+            var ss = this.GetService(typeof(_DTE));
             RegexToolWindowCommand.Initialize(this);
             base.Initialize();
         }

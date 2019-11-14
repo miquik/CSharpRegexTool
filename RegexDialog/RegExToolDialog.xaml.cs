@@ -18,7 +18,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using System.Xml;
 using Microsoft.VisualStudio.Shell;
-
+using System.Reflection;
 
 namespace RegexDialog
 {
@@ -163,13 +163,7 @@ namespace RegexDialog
         public RegExToolDialog()
         {
             InitializeComponent();
-            Init();
-        }
-
-        // EnvDTE._DTE _dte
-        public RegExToolDialog(EnvDTE._DTE dte)
-        {
-            InitializeComponent();
+            _bnpp = new BNpp();
             Init();
         }
 
@@ -179,21 +173,114 @@ namespace RegexDialog
         private void Init()
         {
             // Initialisation des delegates de base
-            GetText = () => string.Empty;
+            _bnpp.DTE = CSharpRegexTool.RegexToolWindowCommand.Instance.InstanceDTE;
 
-            SetText = (string text) => { };
+            GetText = () => _bnpp.Text;
+            SetText = (string text) =>
+            {
+                /*
+                if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
+                {
+                    BNpp.NotepadPP.FileNew();
+                }
+                */
+                _bnpp.Text = text;
+            };
 
-            SetTextInNew = (string text) => MessageBox.Show("Not Implemented");
+            SetTextInNew = (string text) =>
+            {
+                // BNpp.NotepadPP.FileNew();
+                _bnpp.Text = text;
+            };
 
-            // Application de la coloration syntaxique pour les expressions régulières
-            XmlReader reader = XmlReader.Create(new StringReader(Res.Regex_syntax_color));
+            GetSelectedText = () => _bnpp.SelectedText;
+            SetPosition = (int index, int length) => _bnpp.SelectTextAndShow(index, index + length);
 
-            RegexEditor.SyntaxHighlighting = HighlightingLoader.Load(reader, HighlightingManager.Instance);
+            SetSelection = (int index, int length) => _bnpp.AddSelection(index, index + length);
+            GetSelectionStartIndex = () => _bnpp.SelectionStart;
+            GetSelectionLength = () => _bnpp.SelectionLength;
 
-            // Application de la coloration syntaxique pour les chaines de remplacement
-            XmlReader reader2 = XmlReader.Create(new StringReader(Res.Replace_syntax_color));
+            SaveCurrentDocument = () => { };
+            // BNpp.NotepadPP.SaveCurrentFile(),
 
-            ReplaceEditor.SyntaxHighlighting = HighlightingLoader.Load(reader2, HighlightingManager.Instance);
+            /*
+                        TryOpen = (string fileName, bool onlyIfAlreadyOpen) =>
+                        {
+                            try
+                            {
+                                bool result = false;
+
+                                if (BNpp.NotepadPP.CurrentFileName.ToLower().Equals(fileName.ToLower()))
+                                    result = true;
+                                else if (BNpp.NotepadPP.GetAllOpenedDocuments.Any((string s) => s.Equals(fileName, StringComparison.OrdinalIgnoreCase)))
+                                {
+                                    BNpp.NotepadPP.ShowOpenedDocument(fileName);
+                                    result = true;
+                                }
+                                else if (!onlyIfAlreadyOpen)
+                                {
+                                    result = BNpp.NotepadPP.OpenFile(fileName);
+                                }
+                                else
+                                {
+                                    result = false;
+                                }
+
+                                hWnd = FindWindow(null, "C# Regex Tool");
+                                if (hWnd.ToInt64() > 0)
+                                {
+                                    SetForegroundWindow(hWnd);
+                                }
+
+                                return result;
+                            }
+                            catch
+                            {
+                                return false;
+                            }
+
+                        },
+                        */
+
+
+
+
+
+
+            // GetText = () => string.Empty;
+
+            // SetText = (string text) => { };
+
+            // SetTextInNew = (string text) => MessageBox.Show("Not Implemented");
+            /*
+            Assembly a = Assembly.GetExecutingAssembly();
+            using (Stream stream = a.GetManifestResourceStream("LoadResourceTest.mydata.xml"))
+            {
+                // Application de la coloration syntaxique pour les expressions régulières
+                XmlReader reader = XmlReader.Create(new StringReader(Res.Regex_syntax_color));
+                RegexEditor.SyntaxHighlighting = HighlightingLoader.Load(reader, HighlightingManager.Instance);
+            }
+            */
+            try
+            {
+                XmlReader reader = XmlReader.Create(new StringReader(CSharpRegexTool.SyntaxRes.Regex_syntax_color));
+                RegexEditor.SyntaxHighlighting = HighlightingLoader.Load(reader, HighlightingManager.Instance);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+
+            try
+            {
+                // Application de la coloration syntaxique pour les chaines de remplacement
+                XmlReader reader2 = XmlReader.Create(new StringReader(CSharpRegexTool.SyntaxRes.Replace_syntax_color));
+                ReplaceEditor.SyntaxHighlighting = HighlightingLoader.Load(reader2, HighlightingManager.Instance);
+            }
+            catch (Exception ex2)
+            {
+                throw;
+            }
 
             // Abonnement au changement de position du curseur de texte pour la coloration des parentèses
             RegexEditor.TextArea.Caret.PositionChanged += Caret_PositionChanged;
@@ -252,13 +339,13 @@ namespace RegexDialog
 
         private void BuildRegexLanguageElements()
         {
-            RegexLanguageElements root = JsonConvert.DeserializeObject<RegexLanguageElements>(Res.RegexLanguageElements);
+            RegexLanguageElements root = JsonConvert.DeserializeObject<RegexLanguageElements>(CSharpRegexTool.SyntaxRes.RegexLanguageElements);
             RegexLanguagesElementsTreeView.ItemsSource = root.Data;
         }
 
         private void BuildReplaceLanguageElements()
         {
-            ReplaceLanguageElements root = JsonConvert.DeserializeObject<ReplaceLanguageElements>(Res.ReplaceLanguageElements);
+            ReplaceLanguageElements root = JsonConvert.DeserializeObject<ReplaceLanguageElements>(CSharpRegexTool.SyntaxRes.ReplaceLanguageElements);
             ReplaceLanguageElementsListView.ItemsSource = root.Data;
         }
 
@@ -588,7 +675,7 @@ namespace RegexDialog
 
                 if (CSharpReplaceCheckbox.IsChecked.GetValueOrDefault())
                 {
-                    dynamic script = CSScript.Evaluator.LoadCode(Res.CSharpReplaceContainer.Replace("//code", ReplaceEditor.Text));
+                    dynamic script = CSScript.Evaluator.LoadCode(CSharpRegexTool.SyntaxRes.CSharpReplaceContainer.Replace("//code", ReplaceEditor.Text));
 
                     int index = -1;
 
@@ -828,7 +915,7 @@ namespace RegexDialog
                 dynamic script = null;
 
                 if (CSharpReplaceCheckbox.IsChecked.GetValueOrDefault())
-                    script = CSScript.Evaluator.LoadCode(Res.CSharpReplaceContainer.Replace("//code", ReplaceEditor.Text));
+                    script = CSScript.Evaluator.LoadCode(CSharpRegexTool.SyntaxRes.CSharpReplaceContainer.Replace("//code", ReplaceEditor.Text));
 
                 Action<string, string> Extract = (text, fileName) =>
                 {
@@ -1000,9 +1087,9 @@ namespace RegexDialog
                         SetPosition(regexResult.Index, regexResult.Length);
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    SetPosition(0, 0);
+                    SetPosition(1, 1);
                 }
 
                 e.Handled = true;
@@ -1472,7 +1559,7 @@ namespace RegexDialog
 
                         if (CSharpReplaceCheckbox.IsChecked.GetValueOrDefault())
                         {
-                            dynamic script = CSScript.Evaluator.LoadCode(Res.CSharpReplaceContainer.Replace("//code", ReplaceEditor.Text));
+                            dynamic script = CSScript.Evaluator.LoadCode(CSharpRegexTool.SyntaxRes.CSharpReplaceContainer.Replace("//code", ReplaceEditor.Text));
 
                             int index = -1;
 
@@ -1518,7 +1605,7 @@ namespace RegexDialog
 
                         if (CSharpReplaceCheckbox.IsChecked.GetValueOrDefault())
                         {
-                            dynamic script = CSScript.Evaluator.LoadCode(Res.CSharpReplaceContainer.Replace("//code", ReplaceEditor.Text));
+                            dynamic script = CSScript.Evaluator.LoadCode(CSharpRegexTool.SyntaxRes.CSharpReplaceContainer.Replace("//code", ReplaceEditor.Text));
 
                             if (regexResult is RegexMatchResult)
                             {
@@ -2055,7 +2142,7 @@ namespace RegexDialog
                 }
                 else
                 {
-                    XmlReader reader2 = XmlReader.Create(new StringReader(Res.Replace_syntax_color));
+                    XmlReader reader2 = XmlReader.Create(new StringReader(CSharpRegexTool.SyntaxRes.Replace_syntax_color));
 
                     ReplaceEditor.SyntaxHighlighting = HighlightingLoader.Load(reader2, HighlightingManager.Instance);
                 }

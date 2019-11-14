@@ -33,6 +33,8 @@ namespace CSharpRegexTool
         /// </summary>
         private readonly Package package;
 
+        private EnvDTE._DTE dte;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="RegexToolWindowCommand"/> class.
         /// Adds our command handlers for menu (commands must exist in the command table file)
@@ -54,6 +56,12 @@ namespace CSharpRegexTool
                 var menuItem = new MenuCommand(this.ShowToolWindow, menuCommandID);
                 commandService.AddCommand(menuItem);
             }
+            //
+            this.dte = ServiceProvider.GetService(typeof(_DTE)) as _DTE;
+            if (dte == null)
+            {
+                throw new ArgumentNullException("DTE");
+            }
         }
 
         /// <summary>
@@ -73,6 +81,14 @@ namespace CSharpRegexTool
             get
             {
                 return this.package;
+            }
+        }
+
+        public _DTE InstanceDTE
+        {
+            get
+            {
+                return dte;
             }
         }
 
@@ -101,14 +117,6 @@ namespace CSharpRegexTool
                 throw new NotSupportedException("Cannot create tool window");
             }
 
-            var dte = this.ServiceProvider.GetService(typeof(_DTE)) as _DTE;
-            if (dte == null)
-            {
-                throw new Exception("Cannot get DTE");
-            }
-            // pass DTE to usercontrol
-            ((RegexToolWindow)window).SetDTE(dte);
-            //
             IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
             Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
         }
