@@ -61,23 +61,6 @@ namespace RegexDialog
             get
             {
                 return Environment.NewLine;
-                /*
-                string eol = "\n";
-                int value = Win32.SendMessage(PluginBase.nppData._nppHandle, SciMsg.SCI_GETEOLMODE, 0, 0).ToInt32();
-
-                switch (value)
-                {
-                    case 0:
-                        eol = "\r\n";
-                        break;
-                    case 1:
-                        eol = "\r";
-                        break;
-                    default:
-                        break;
-                }
-                return eol;
-                */
             }
         }
 
@@ -99,7 +82,9 @@ namespace RegexDialog
                     return String.Empty;
                 }
                 var text = ActiveTextDocument.CreateEditPoint(ActiveTextDocument.StartPoint).GetText(ActiveTextDocument.EndPoint);
+                // TOCHECK!!!! Could avoid this???
                 return text.Replace(Environment.NewLine, "\n");
+                // return text;
             }
 
             set

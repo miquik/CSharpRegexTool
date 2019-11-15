@@ -241,26 +241,6 @@ namespace RegexDialog
 
                         },
                         */
-
-
-
-
-
-
-            // GetText = () => string.Empty;
-
-            // SetText = (string text) => { };
-
-            // SetTextInNew = (string text) => MessageBox.Show("Not Implemented");
-            /*
-            Assembly a = Assembly.GetExecutingAssembly();
-            using (Stream stream = a.GetManifestResourceStream("LoadResourceTest.mydata.xml"))
-            {
-                // Application de la coloration syntaxique pour les expressions régulières
-                XmlReader reader = XmlReader.Create(new StringReader(Res.Regex_syntax_color));
-                RegexEditor.SyntaxHighlighting = HighlightingLoader.Load(reader, HighlightingManager.Instance);
-            }
-            */
             try
             {
                 XmlReader reader = XmlReader.Create(new StringReader(CSharpRegexTool.SyntaxRes.Regex_syntax_color));
@@ -417,6 +397,44 @@ namespace RegexDialog
 
         private void ShowMatchesButton_Click(object sender, RoutedEventArgs e)
         {
+            // some tests here
+            var atd = _bnpp.ActiveTextDocument;
+
+            // TEST 1 works as expected
+            /*
+            atd.Selection.MoveToAbsoluteOffset(14);
+            var oldAnchor = atd.Selection.AnchorPoint.CreateEditPoint();
+            var oldActive = atd.Selection.ActivePoint.CreateEditPoint();
+
+            atd.Selection.MoveToAbsoluteOffset(36);
+            var oldAnchor2 = atd.Selection.AnchorPoint.CreateEditPoint();
+            var oldActive2 = atd.Selection.ActivePoint.CreateEditPoint();
+
+            oldActive.Insert("CIAO");
+            oldActive2.Insert("CIAO");
+            */
+
+            // TEST 2 works as expected (not what we want)
+            /*
+            atd.Selection.MoveToAbsoluteOffset(14);
+            atd.Selection.Insert("CIAO");
+            atd.Selection.MoveToAbsoluteOffset(36);
+            atd.Selection.Insert("CIAO");
+            */
+
+            // TEST 3 doesn't work as excepted (works as TEST 2)
+            /*
+            var oldActive = atd.Selection.AnchorPoint.CreateEditPoint();
+            oldActive.MoveToAbsoluteOffset(14);            
+            oldActive.Insert("CIAO");
+
+            var oldActive2 = atd.Selection.AnchorPoint.CreateEditPoint();
+            oldActive2.MoveToAbsoluteOffset(36);
+            oldActive2.Insert("CIAO");
+            */
+            
+            // atd.Selection.SwapAnchor();
+            // atd.Selection.MoveToAbsoluteOffset(oldActive.AbsoluteCharOffset, true);            
             try
             {
                 ShowMatches();
@@ -1071,6 +1089,8 @@ namespace RegexDialog
 
         private void MatchResultsTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
+            e.Handled = true;
+            return;
             try
             {
                 try

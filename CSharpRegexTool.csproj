@@ -95,7 +95,6 @@
     <Compile Include="RegexDialog\RegExToolDialog.xaml.cs">
       <DependentUpon>RegExToolDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="RegexDialog\Res.Designer.cs" />
     <Compile Include="SyntaxRes.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -111,9 +110,6 @@
     <Compile Include="RegexDialog\Utils\XmlStringExtension.cs" />
     <Compile Include="RegexToolWindow.cs" />
     <Compile Include="RegexToolWindowCommand.cs" />
-    <Compile Include="RegexToolWindowControl.xaml.cs">
-      <DependentUpon>RegexToolWindowControl.xaml</DependentUpon>
-    </Compile>
     <Compile Include="RegexToolWindowPackage.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -169,10 +165,6 @@
     <Page Include="RegexDialog\RegExToolDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </Page>
-    <Page Include="RegexToolWindowControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>
@@ -438,7 +430,6 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="RegexDialog\Res.resx" />
     <EmbeddedResource Include="SyntaxRes.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>SyntaxRes.Designer.cs</LastGenOutput>
