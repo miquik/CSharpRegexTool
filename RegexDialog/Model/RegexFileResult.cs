@@ -4,7 +4,7 @@ namespace RegexDialog
 {
     internal class RegexFileResult : RegexResult
     {
-        public RegexFileResult(Regex regex, Capture regexElement, int regexElementNb, string fileName) : base(regex, regexElement, regexElementNb, fileName, 0)
+        public RegexFileResult(Regex regex, Capture regexElement, EnvDTE.EditPoint ep, int regexElementNb, string fileName) : base(regex, regexElement, ep, regexElementNb, fileName, 0)
         {}
 
         public override string Name

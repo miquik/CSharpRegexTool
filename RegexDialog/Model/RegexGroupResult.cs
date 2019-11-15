@@ -5,7 +5,7 @@ namespace RegexDialog
 {
     internal class RegexGroupResult : RegexResult
     {
-        public RegexGroupResult(Regex regex, Group group, int groupNb, string fileName = "", int selectionIndex = 0) : base(regex, group, groupNb, fileName, selectionIndex)
+        public RegexGroupResult(Regex regex, Group group, EnvDTE.EditPoint ep, int groupNb, string fileName = "", int selectionIndex = 0) : base(regex, group, ep, groupNb, fileName, selectionIndex)
         {
             int i = 0;
 
@@ -14,7 +14,7 @@ namespace RegexDialog
                 .ToList()
                 .ConvertAll(delegate(Capture c)
                 {
-                    RegexResult result = new RegexCaptureResult(regex, c, i, fileName, selectionIndex)
+                    RegexResult result = new RegexCaptureResult(regex, c, null, i, fileName, selectionIndex)
                     {
                         Parent = this
                     };

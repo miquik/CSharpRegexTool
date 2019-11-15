@@ -7,7 +7,7 @@ namespace RegexDialog
 {
     internal class RegexResult : INotifyPropertyChanged
     {
-        public RegexResult(Regex regex, Capture regexElement, EnvDTE.VirtualPoint ep, int regexElementNb, string fileName = "", int selectionIndex = 0)
+        public RegexResult(Regex regex, Capture regexElement, EnvDTE.EditPoint ep, int regexElementNb, string fileName = "", int selectionIndex = 0)
         {
             Regex = regex;
             RegexElement = regexElement;
@@ -44,7 +44,7 @@ namespace RegexDialog
 
         public Regex Regex { get; private set; }
 
-        public EnvDTE.VirtualPoint EditPoint { get; set; } = null;
+        public EnvDTE.EditPoint EditPoint { get; set; } = null;
 
 
         public virtual string Name

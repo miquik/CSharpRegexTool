@@ -612,7 +612,11 @@ namespace RegexDialog
                             })
                             .ConvertAll(delegate (Match m)
                             {
-                                RegexResult result = new RegexMatchResult(regex, m, i, fileName, selectionIndex);
+                                // RegexElement.Index.ToString() + "," + RegexElement.Length.ToString()
+                                _bnpp.ActiveTextDocument.Selection.MoveToAbsoluteOffset(m.Index + 1);
+                                var oldAnchor = _bnpp.ActiveTextDocument.Selection.AnchorPoint.CreateEditPoint();
+                                // var oldActive = _bnpp.ActiveTextDocument.Selection.ActivePoint.CreateEditPoint();
+                                RegexResult result = new RegexMatchResult(regex, m, oldAnchor, i, fileName, selectionIndex);
 
                                 i++;
 
@@ -637,7 +641,7 @@ namespace RegexDialog
                                 if (temp.Count > 0)
                                     ff++;
 
-                                return new RegexFileResult(regex, null, Config.Instance.TextSourceDirectoryShowNotMatchedFiles ? ft : ff, fileName)
+                                return new RegexFileResult(regex, null, null, Config.Instance.TextSourceDirectoryShowNotMatchedFiles ? ft : ff, fileName)
                                 {
                                     Children = temp
                                 };
@@ -1089,8 +1093,8 @@ namespace RegexDialog
 
         private void MatchResultsTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            e.Handled = true;
-            return;
+            //e.Handled = true;
+            // return;
             try
             {
                 try
