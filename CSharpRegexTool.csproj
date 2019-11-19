@@ -95,6 +95,7 @@
     <Compile Include="RegexDialog\RegExToolDialog.xaml.cs">
       <DependentUpon>RegExToolDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="RegexDialog\Utils\RegexLibrary.cs" />
     <Compile Include="SyntaxRes.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -153,6 +154,7 @@
     <Resource Include="RegexDialog\Resources\table_export.png" />
     <Resource Include="RegexDialog\Resources\textfield_rename.png" />
     <Resource Include="RegexDialog\Resources\text_replace.png" />
+    <Resource Include="RegexDialog\Resources\cancel.png" />
     <Content Include="TextFile1.txt" />
     <VSCTCompile Include="RegexToolWindowPackage.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>

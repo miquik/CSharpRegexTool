@@ -135,5 +135,11 @@ namespace RegexDialog
         public bool ShowLinesNumbersReplaceEditorOption { get; set; } = false;
         public bool ShowSpaceCharsReplaceEditorOption { get; set; } = false;
         public bool ShowEndOfLinesReplaceEditorOption { get; set; } = false;
+
+        // MIKI
+        [JsonIgnore]
+        public RExprLibrary ExpressionLibrary { get; set; } = new RExprLibrary();
+        [JsonIgnore]
+        public RExprItem SelectedExpressionItem { get; set; } = null;
     }
 }

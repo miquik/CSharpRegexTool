@@ -59,6 +59,8 @@ namespace RegexDialog
         public delegate void SetPositionDelegate(int index, int length);
         public delegate int GetIntDelegate();
 
+        //
+
         /// <summary>
         /// Fonction de récupération du texte à utiliser comme input pour l'expression régulière
         /// public delegate string GetTextDelegate()
@@ -172,6 +174,8 @@ namespace RegexDialog
         /// </summary>
         private void Init()
         {
+            Config.Instance.ExpressionLibrary.Items.Add(new RExprItem() { Name = "E1", MatchText="UNO", ReplaceText="DUe" });
+            Config.Instance.ExpressionLibrary.Items.Add(new RExprItem() { Name = "E2", MatchText = "TRE", ReplaceText = "44" });
             // Initialisation des delegates de base
             _bnpp.DTE = CSharpRegexTool.RegexToolWindowCommand.Instance.InstanceDTE;
 
@@ -694,7 +698,7 @@ namespace RegexDialog
                 Regex regex = new Regex(RegexEditor.Text, GetRegexOptions());
 
                 int nbrOfElementToReplace = Config.Instance.TextSourceOn == RegexTextSource.Directory ? 0 : regex.Matches(text).Count;
-
+                /*
                 if (CSharpReplaceCheckbox.IsChecked.GetValueOrDefault())
                 {
                     dynamic script = CSScript.Evaluator.LoadCode(CSharpRegexTool.SyntaxRes.CSharpReplaceContainer.Replace("//code", ReplaceEditor.Text));
@@ -778,6 +782,7 @@ namespace RegexDialog
                     }
                 }
                 else
+                */
                 {
                     switch (Config.Instance.TextSourceOn)
                     {
@@ -936,9 +941,10 @@ namespace RegexDialog
                 int fileIndex = 0;
                 dynamic script = null;
 
+                /*
                 if (CSharpReplaceCheckbox.IsChecked.GetValueOrDefault())
                     script = CSScript.Evaluator.LoadCode(CSharpRegexTool.SyntaxRes.CSharpReplaceContainer.Replace("//code", ReplaceEditor.Text));
-
+                    */
                 Action<string, string> Extract = (text, fileName) =>
                 {
                     List<Match> matches = regex.Matches(text)
@@ -949,7 +955,7 @@ namespace RegexDialog
                     {
                         if (Config.Instance.PrintFileNameWhenExtract)
                             sb.AppendLine("\r\n" + fileName);
-
+                        /*
                         if (CSharpReplaceCheckbox.IsChecked.GetValueOrDefault())
                         {
                             int index = 0;
@@ -961,6 +967,7 @@ namespace RegexDialog
                                 index++;
                             });
                         }
+                        */
                         else
                         {
                             matches.ForEach(match => sb.AppendLine(match.Value));
@@ -1308,8 +1315,8 @@ namespace RegexDialog
             {
                 SaveWindowPosition();
 
-                RegexHistoryPopup.IsOpen = false;
-                ReplaceHistoryPopup.IsOpen = false;
+                // RegexHistoryPopup.IsOpen = false;
+                // ReplaceHistoryPopup.IsOpen = false;
                 SetMaxSizes();
             }
             catch { }
@@ -1375,6 +1382,7 @@ namespace RegexDialog
         {
             try
             {
+                /*
                 RegexHistoryPopup.IsOpen = !RegexHistoryPopup.IsOpen;
                 if (RegexHistoryPopup.IsOpen)
                 {
@@ -1382,6 +1390,7 @@ namespace RegexDialog
                     if (RegexHistoryListBox.Items.Count > 0)
                         RegexHistoryListBox.SelectedIndex = 0;
                 }
+                */
             }
             catch { }
         }
@@ -1390,6 +1399,7 @@ namespace RegexDialog
         {
             try
             {
+                /*
                 var focused = FocusManager.GetFocusedElement(this);
 
                 var item = focused as ListBoxItem;
@@ -1397,6 +1407,7 @@ namespace RegexDialog
                 {
                     RegexHistoryPopup.IsOpen = false;
                 }
+                */
             }
             catch { }
         }
@@ -1407,8 +1418,8 @@ namespace RegexDialog
             {
                 SaveWindowPosition();
 
-                RegexHistoryPopup.IsOpen = false;
-                ReplaceHistoryPopup.IsOpen = false;
+                // RegexHistoryPopup.IsOpen = false;
+                // ReplaceHistoryPopup.IsOpen = false;
             }
             catch { }
         }
@@ -1417,6 +1428,7 @@ namespace RegexDialog
         {
             try
             {
+                /*
                 if (e.Key == Key.Enter && RegexHistoryListBox.SelectedValue != null)
                 {
                     RegexEditor.Text = RegexHistoryListBox.SelectedValue.ToString();
@@ -1428,6 +1440,7 @@ namespace RegexDialog
                     RegexHistoryPopup.IsOpen = false;
                     RegexHistoryButton.Focus();
                 }
+                */
             }
             catch { }
         }
@@ -1436,12 +1449,14 @@ namespace RegexDialog
         {
             try
             {
+                /*
                 if (RegexHistoryListBox.SelectedValue != null)
                 {
                     RegexEditor.Text = RegexHistoryListBox.SelectedValue.ToString();
                     RegexHistoryPopup.IsOpen = false;
                     SetToHistory(1);
                 }
+                */
             }
             catch { }
         }
@@ -1450,6 +1465,7 @@ namespace RegexDialog
         {
             try
             {
+                /*
                 ReplaceHistoryPopup.IsOpen = !ReplaceHistoryPopup.IsOpen;
                 if (ReplaceHistoryPopup.IsOpen)
                 {
@@ -1457,6 +1473,7 @@ namespace RegexDialog
                     if (ReplaceHistoryListBox.Items.Count > 0)
                         ReplaceHistoryListBox.SelectedIndex = 0;
                 }
+                */
             }
             catch { }
         }
@@ -1465,6 +1482,7 @@ namespace RegexDialog
         {
             try
             {
+                /*
                 var focused = FocusManager.GetFocusedElement(this);
 
                 var item = focused as ListBoxItem;
@@ -1472,6 +1490,7 @@ namespace RegexDialog
                 {
                     ReplaceHistoryPopup.IsOpen = false;
                 }
+                */
             }
             catch { }
         }
@@ -1480,7 +1499,7 @@ namespace RegexDialog
         {
             try
             {
-
+                /*
                 if (e.Key == Key.Enter && ReplaceHistoryListBox.SelectedValue != null)
                 {
                     ReplaceEditor.Text = ReplaceHistoryListBox.SelectedValue.ToString();
@@ -1492,6 +1511,7 @@ namespace RegexDialog
                     ReplaceHistoryPopup.IsOpen = false;
                     ReplaceHistoryButton.Focus();
                 }
+                */
             }
             catch { }
         }
@@ -1500,12 +1520,14 @@ namespace RegexDialog
         {
             try
             {
+                /*
                 if (ReplaceHistoryListBox.SelectedValue != null)
                 {
                     ReplaceEditor.Text = ReplaceHistoryListBox.SelectedValue.ToString();
                     ReplaceHistoryPopup.IsOpen = false;
                     SetToHistory(2);
                 }
+                */
             }
             catch { }
         }
@@ -1580,7 +1602,7 @@ namespace RegexDialog
                         Regex regex = regexFileResult.Regex;
 
                         int nbrOfElementToReplace = regex.Matches(text).Count;
-
+                        /*
                         if (CSharpReplaceCheckbox.IsChecked.GetValueOrDefault())
                         {
                             dynamic script = CSScript.Evaluator.LoadCode(CSharpRegexTool.SyntaxRes.CSharpReplaceContainer.Replace("//code", ReplaceEditor.Text));
@@ -1596,6 +1618,7 @@ namespace RegexDialog
                             SaveCurrentDocument?.Invoke();
                         }
                         else
+                        */
                         {
                             SetText(regex.Replace(text, ReplaceEditor.Text));
                             SaveCurrentDocument?.Invoke();
@@ -1626,7 +1649,7 @@ namespace RegexDialog
                         string beforeMatch = text.Substring(0, regexResult.Index);
                         string afterMatch = text.Substring(regexResult.Index + regexResult.Length);
                         string newText = text;
-
+                        /*
                         if (CSharpReplaceCheckbox.IsChecked.GetValueOrDefault())
                         {
                             dynamic script = CSScript.Evaluator.LoadCode(CSharpRegexTool.SyntaxRes.CSharpReplaceContainer.Replace("//code", ReplaceEditor.Text));
@@ -1648,6 +1671,7 @@ namespace RegexDialog
                             }
                         }
                         else
+                        */
                         {
                             Match superMatch = (regexResult.RegexElement as Match) ?? (regexResult.Parent?.RegexElement as Match) ?? (regexResult.Parent?.Parent?.RegexElement as Match);
                             string replaceText = Regex.Replace(ReplaceEditor.Text,
@@ -2160,11 +2184,13 @@ namespace RegexDialog
         {
             try
             {
+                /*
                 if (CSharpReplaceCheckbox.IsChecked.GetValueOrDefault(false))
                 {
                     ReplaceEditor.SyntaxHighlighting = HighlightingManager.Instance.GetDefinition("C#");
                 }
                 else
+                */
                 {
                     XmlReader reader2 = XmlReader.Create(new StringReader(CSharpRegexTool.SyntaxRes.Replace_syntax_color));
 
@@ -2208,6 +2234,32 @@ namespace RegexDialog
         private void TreeViewItem_MouseDown(object sender, MouseButtonEventArgs e)
         {
             e.Handled = true;
+        }
+
+        private void ComboBox_Selected(object sender, RoutedEventArgs e)
+        {
+            int k = 0;
+            RExprItem sei = Config.Instance.SelectedExpressionItem;
+            if (sei != null)
+            {
+                RegexEditor.Text = sei.MatchText;
+                ReplaceEditor.Text = sei.ReplaceText;
+            }
+        }
+
+        private void RExprItemNew(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void RExprItemSave(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void RExprItemDelete(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }
