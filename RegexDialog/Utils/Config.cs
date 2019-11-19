@@ -139,7 +139,5 @@ namespace RegexDialog
         // MIKI
         [JsonIgnore]
         public RExprLibrary ExpressionLibrary { get; set; } = new RExprLibrary();
-        [JsonIgnore]
-        public RExprItem SelectedExpressionItem { get; set; } = null;
     }
 }

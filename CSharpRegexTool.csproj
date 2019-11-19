@@ -80,6 +80,9 @@
     <Compile Include="RegexDialog\Converters\CustomBoolToVisibilityConverter.cs" />
     <Compile Include="RegexDialog\Converters\EnumBooleanConverter.cs" />
     <Compile Include="RegexDialog\Converters\ShowOnOneLineConverter.cs" />
+    <Compile Include="RegexDialog\InputBox.xaml.cs">
+      <DependentUpon>InputBox.xaml</DependentUpon>
+    </Compile>
     <Compile Include="RegexDialog\Model\RegexCaptureResult.cs" />
     <Compile Include="RegexDialog\Model\RegexFileResult.cs" />
     <Compile Include="RegexDialog\Model\RegexGroupResult.cs" />
@@ -164,6 +167,10 @@
     <Content Include="stylesheet.css" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="RegexDialog\InputBox.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="RegexDialog\RegExToolDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

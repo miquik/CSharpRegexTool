@@ -46,6 +46,7 @@ namespace RegexDialog
         private int lastSelectionLength = 0;
 
         private BNpp _bnpp = null;
+        private RExprItem _selectedExprItem = null;
 
         private bool mustSelectEditor = false;
 
@@ -59,7 +60,8 @@ namespace RegexDialog
         public delegate void SetPositionDelegate(int index, int length);
         public delegate int GetIntDelegate();
 
-        //
+        //        
+
 
         /// <summary>
         /// Fonction de récupération du texte à utiliser comme input pour l'expression régulière
@@ -2236,20 +2238,58 @@ namespace RegexDialog
             e.Handled = true;
         }
 
-        private void ComboBox_Selected(object sender, RoutedEventArgs e)
+        private bool ShouldRExprItemBeSaved(RExprItem oldItem)
         {
-            int k = 0;
-            RExprItem sei = Config.Instance.SelectedExpressionItem;
-            if (sei != null)
+            // TODO options
+            if (oldItem.MatchText != RegexEditor.Text ||
+                oldItem.ReplaceText != ReplaceEditor.Text)
             {
-                RegexEditor.Text = sei.MatchText;
-                ReplaceEditor.Text = sei.ReplaceText;
+                return true;
+            }
+            return false;
+        }
+
+        private void SaveRExprItem(RExprItem oldItem)
+        {
+            oldItem.MatchText = RegexEditor.Text;
+            oldItem.ReplaceText = ReplaceEditor.Text;
+            // RegexOptions opts = GetRegexOptions();
+            // save
+            Config.Instance.ExpressionLibrary.Save();
+        }
+
+        private void ComboBox_Selected(object sender, SelectionChangedEventArgs e)
+        {
+            int k = 0;           
+            if (e.RemovedItems.Count == 1)
+            {
+                // save data to items
+                RExprItem oldItem = (RExprItem)e.RemovedItems[0];
+                if (ShouldRExprItemBeSaved(oldItem))
+                {
+                    SaveRExprItem(oldItem);
+                }
+            }
+            if (e.AddedItems.Count == 1)
+            {
+                _selectedExprItem = (RExprItem)e.AddedItems[0];
+                RegexEditor.Text = _selectedExprItem.MatchText;
+                ReplaceEditor.Text = _selectedExprItem.ReplaceText;
+                // RegexOptions opts = GetRegexOptions();
             }
         }
 
         private void RExprItemNew(object sender, RoutedEventArgs e)
         {
+            if (_selectedExprItem != null && ShouldRExprItemBeSaved(_selectedExprItem))
+            {
+                SaveRExprItem(_selectedExprItem);
+            }
+            InputBox ib = new InputBox("Nome della nuova espressione", "Nome");
+            if (ib.ShowDialog() == true)
+            {
 
+            }
         }
 
         private void RExprItemSave(object sender, RoutedEventArgs e)
@@ -2259,7 +2299,15 @@ namespace RegexDialog
 
         private void RExprItemDelete(object sender, RoutedEventArgs e)
         {
-
+            if (_selectedExprItem != null)
+            {
+                Config.Instance.ExpressionLibrary.Items.Remove(_selectedExprItem);
+                Config.Instance.ExpressionLibrary.Save();
+                _selectedExprItem = null;
+                // TODO: first element
+                RegexEditor.Text = "";
+                ReplaceEditor.Text = "";
+            }
         }
     }
 }
