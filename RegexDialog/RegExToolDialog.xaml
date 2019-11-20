@@ -60,6 +60,11 @@
             <Image Source="{StaticResource OpenPicture}" />
           </MenuItem.Icon>
         </MenuItem>
+        <MenuItem Header="_Save..." Click="Save_MenuItem_Click" >
+          <MenuItem.Icon>
+            <Image Source="{StaticResource SavePicture}" />
+          </MenuItem.Icon>
+        </MenuItem>
         <MenuItem Header="Save _As..." Click="Save_as_MenuItem_Click" >
           <MenuItem.Icon>
             <Image Source="{StaticResource SavePicture}" />
@@ -211,8 +216,8 @@
         <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
         <!-- MIKI -->
         <Label Content="Expression :"/>
-        <ComboBox ItemsSource="{Binding ExpressionLibrary.Items}" 
-                  SelectedItem="{Binding SelectedExpressionItem}"  
+        <ComboBox x:Name="ExpressionComboBox"
+                  ItemsSource="{Binding ExpressionLibrary.Items}" 
                   DisplayMemberPath="Name"                  
                   SelectionChanged="ComboBox_Selected"
                   Width="120" Margin="2"/>

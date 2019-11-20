@@ -176,7 +176,7 @@ namespace RegexDialog
         /// </summary>
         private void Init()
         {
-            Config.Instance.ExpressionLibrary.Items.Add(new RExprItem() { Name = "E1", MatchText="UNO", ReplaceText="DUe" });
+            Config.Instance.ExpressionLibrary.Items.Add(new RExprItem() { Name = "E1", MatchText = "UNO", ReplaceText = "DUe" });
             Config.Instance.ExpressionLibrary.Items.Add(new RExprItem() { Name = "E2", MatchText = "TRE", ReplaceText = "44" });
             // Initialisation des delegates de base
             _bnpp.DTE = CSharpRegexTool.RegexToolWindowCommand.Instance.InstanceDTE;
@@ -438,7 +438,7 @@ namespace RegexDialog
             oldActive2.MoveToAbsoluteOffset(36);
             oldActive2.Insert("CIAO");
             */
-            
+
             // atd.Selection.SwapAnchor();
             // atd.Selection.MoveToAbsoluteOffset(oldActive.AbsoluteCharOffset, true);            
             try
@@ -1806,8 +1806,8 @@ namespace RegexDialog
         {
             try
             {
-                SetToHistory();
-
+                // SetToHistory();
+                Config.Instance.ExpressionLibrary = new RExprLibrary();
                 RegexEditor.Text = "";
                 ReplaceEditor.Text = "";
 
@@ -1849,6 +1849,14 @@ namespace RegexDialog
                     {
                         try
                         {
+                            // save previous work if any
+                            Config.Instance.ExpressionLibrary.Save();
+                            //
+                            Config.Instance.ExpressionLibrary = new RExprLibrary(dialog.FileName);
+                            Config.Instance.ExpressionLibrary.Load();
+
+                            ExpressionComboBox.SelectedItem = Config.Instance.ExpressionLibrary.Items.First();
+                            /*
                             SetToHistory();
 
                             XmlDocument xmlDoc = new XmlDocument();
@@ -1865,6 +1873,7 @@ namespace RegexDialog
                             {
                                 optionModel.Selected = xOptions.Contains(optionModel.Name);
                             });
+                            */
                         }
                         catch (Exception ex)
                         {
@@ -1875,6 +1884,20 @@ namespace RegexDialog
             }
             catch { }
         }
+
+        private void Save_MenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (String.IsNullOrEmpty(Config.Instance.ExpressionLibrary.Filepath))
+            {
+                // it's first time we save our library
+                Save_as_MenuItem_Click(null, null);
+            }
+            else
+            {
+                Config.Instance.ExpressionLibrary.Save();
+            }
+        }
+
 
         private void Save_as_MenuItem_Click(object sender, RoutedEventArgs e)
         {
@@ -1891,423 +1914,455 @@ namespace RegexDialog
 
                 if (result.HasValue && result.Value)
                 {
+                    Config.Instance.ExpressionLibrary.Filepath = dialog.FileName;
                     try
                     {
-                        XmlDocument xmlDoc = new XmlDocument();
-
-                        XmlDeclaration xmlDeclaration = xmlDoc.CreateXmlDeclaration("1.0", null, null);
-
-                        XmlElement root = xmlDoc.CreateElement("SavedRegex");
-                        xmlDoc.InsertBefore(xmlDeclaration, xmlDoc.DocumentElement);
-                        xmlDoc.AppendChild(root);
-
-                        xmlDoc.DocumentElement.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
-                        xmlDoc.DocumentElement.SetAttribute("xmlns:xsd", "http://www.w3.org/2001/XMLSchema");
-
-                        XmlElement findPatternElement = xmlDoc.CreateElement("FindPattern");
-                        XmlElement replacePatternElement = xmlDoc.CreateElement("ReplacePattern");
-                        XmlElement optionsElement = xmlDoc.CreateElement("Options");
-
-                        root.AppendChild(findPatternElement);
-                        root.AppendChild(replacePatternElement);
-                        root.AppendChild(optionsElement);
-
-                        XmlText findPatternText = xmlDoc.CreateTextNode(RegexEditor.Text);
-                        XmlText replacePatternText = xmlDoc.CreateTextNode(ReplaceEditor.Text);
-
-                        string sOptionsText = regExOptionViewModelsList
-                            .Aggregate<RegExOptionViewModel, string>("", (total, next) => total + (next.Selected ? next.Name + " " : ""))
-                            .Trim();
-
-                        XmlText optionsText = xmlDoc.CreateTextNode(sOptionsText);
-
-                        findPatternElement.AppendChild(findPatternText);
-                        replacePatternElement.AppendChild(replacePatternText);
-                        optionsElement.AppendChild(optionsText);
-
-                        xmlDoc.Save(dialog.FileName);
+                        Config.Instance.ExpressionLibrary.Save();
                     }
                     catch (Exception ex)
                     {
                         MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
+                /*
+                try
+                {
+                    XmlDocument xmlDoc = new XmlDocument();
+
+                    XmlDeclaration xmlDeclaration = xmlDoc.CreateXmlDeclaration("1.0", null, null);
+
+                    XmlElement root = xmlDoc.CreateElement("SavedRegex");
+                    xmlDoc.InsertBefore(xmlDeclaration, xmlDoc.DocumentElement);
+                    xmlDoc.AppendChild(root);
+
+                    xmlDoc.DocumentElement.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
+                    xmlDoc.DocumentElement.SetAttribute("xmlns:xsd", "http://www.w3.org/2001/XMLSchema");
+
+                    XmlElement findPatternElement = xmlDoc.CreateElement("FindPattern");
+                    XmlElement replacePatternElement = xmlDoc.CreateElement("ReplacePattern");
+                    XmlElement optionsElement = xmlDoc.CreateElement("Options");
+
+                    root.AppendChild(findPatternElement);
+                    root.AppendChild(replacePatternElement);
+                    root.AppendChild(optionsElement);
+
+                    XmlText findPatternText = xmlDoc.CreateTextNode(RegexEditor.Text);
+                    XmlText replacePatternText = xmlDoc.CreateTextNode(ReplaceEditor.Text);
+
+                    string sOptionsText = regExOptionViewModelsList
+                        .Aggregate<RegExOptionViewModel, string>("", (total, next) => total + (next.Selected ? next.Name + " " : ""))
+                        .Trim();
+
+                    XmlText optionsText = xmlDoc.CreateTextNode(sOptionsText);
+
+                    findPatternElement.AppendChild(findPatternText);
+                    replacePatternElement.AppendChild(replacePatternText);
+                    optionsElement.AppendChild(optionsText);
+
+                    xmlDoc.Save(dialog.FileName);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                */            
             }
             catch { }
         }
 
-        private void Exit_MenuItem_Click(object sender, RoutedEventArgs e)
+    private void Exit_MenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        try
         {
-            try
+            // this.Close();
+        }
+        catch { }
+    }
+
+    private void Root_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        try
+        {
+            if (e.Key == Key.Escape)
             {
                 // this.Close();
+                e.Handled = true;
             }
-            catch { }
-        }
-
-        private void Root_PreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            try
+            else if (e.Key == Key.F5)
             {
-                if (e.Key == Key.Escape)
+                ShowMatches();
+                e.Handled = true;
+            }
+        }
+        catch { }
+    }
+
+    private void cmiRegexCopyForOnOneLine_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Clipboard.SetText(RegexPatternIndenter.SetOnOneLine(RegexEditor.SelectionLength > 0 ? RegexEditor.SelectedText : RegexEditor.Text));
+        }
+        catch { }
+    }
+
+    private void cmiRegexCopyForXml_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Clipboard.SetText((RegexEditor.SelectionLength > 0 ? RegexEditor.SelectedText : RegexEditor.Text).EscapeXml());
+        }
+        catch { }
+    }
+
+    private void cmiRegexPasteFromXml_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            RegexEditor.SelectedText = Clipboard.GetText().UnescapeXml();
+        }
+        catch { }
+    }
+
+    private void cmiRegexCut_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            RegexEditor.Cut();
+        }
+        catch { }
+    }
+
+    private void cmiRegexCopy_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            RegexEditor.Copy();
+        }
+        catch { }
+    }
+
+    private void cmiRegexPaste_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            RegexEditor.Paste();
+        }
+        catch { }
+    }
+
+    private void cmiReplaceCut_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            ReplaceEditor.Cut();
+        }
+        catch { }
+    }
+
+    private void cmiReplaceCopy_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            ReplaceEditor.Copy();
+        }
+        catch { }
+    }
+
+    private void cmiReplacePaste_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            ReplaceEditor.Paste();
+        }
+        catch { }
+    }
+
+    private void cmiRegexSelectAll_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            RegexEditor.SelectAll();
+        }
+        catch { }
+    }
+
+    private void cmiReplaceSelectAll_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            ReplaceEditor.SelectAll();
+        }
+        catch { }
+    }
+
+    private void cmiRegexIndent_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            SetToHistory(1);
+
+            if (RegexEditor.SelectionLength > 0)
+            {
+                RegexEditor.SelectedText = IndentRegexPattern(RegexEditor.SelectedText);
+            }
+            else
+                RegexEditor.Text = IndentRegexPattern(RegexEditor.Text);
+
+            regExOptionViewModelsList.Find(vm => vm.RegexOptions == RegexOptions.IgnorePatternWhitespace).Selected = true;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message);
+        }
+    }
+
+    private string IndentRegexPattern(string pattern)
+    {
+        return RegexPatternIndenter.IndentRegexPattern(pattern,
+            Config.Instance.AutoIndentCharClassesOnOneLine,
+            Config.Instance.AutoIndentKeepQuantifiersOnSameLine);
+    }
+
+    private void cmiRegexSetOnOneLine_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            SetToHistory(1);
+
+            if (RegexEditor.SelectionLength > 0)
+            {
+                RegexEditor.SelectedText = RegexPatternIndenter.SetOnOneLine(RegexEditor.SelectedText);
+            }
+            else
+            {
+                RegexEditor.Text = RegexPatternIndenter.SetOnOneLine(RegexEditor.Text);
+
+                if (regExOptionViewModelsList.Find(vm => vm.RegexOptions == RegexOptions.IgnorePatternWhitespace).Selected
+                    && MessageBox.Show("Regex Option IgnorePatternWhitespace is checked.\nUncheck it ?", "IgnorePatternWhitespace",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Question) == MessageBoxResult.Yes)
                 {
-                    // this.Close();
-                    e.Handled = true;
-                }
-                else if (e.Key == Key.F5)
-                {
-                    ShowMatches();
-                    e.Handled = true;
-                }
-            }
-            catch { }
-        }
-
-        private void cmiRegexCopyForOnOneLine_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                Clipboard.SetText(RegexPatternIndenter.SetOnOneLine(RegexEditor.SelectionLength > 0 ? RegexEditor.SelectedText : RegexEditor.Text));
-            }
-            catch { }
-        }
-
-        private void cmiRegexCopyForXml_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                Clipboard.SetText((RegexEditor.SelectionLength > 0 ? RegexEditor.SelectedText : RegexEditor.Text).EscapeXml());
-            }
-            catch { }
-        }
-
-        private void cmiRegexPasteFromXml_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                RegexEditor.SelectedText = Clipboard.GetText().UnescapeXml();
-            }
-            catch { }
-        }
-
-        private void cmiRegexCut_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                RegexEditor.Cut();
-            }
-            catch { }
-        }
-
-        private void cmiRegexCopy_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                RegexEditor.Copy();
-            }
-            catch { }
-        }
-
-        private void cmiRegexPaste_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                RegexEditor.Paste();
-            }
-            catch { }
-        }
-
-        private void cmiReplaceCut_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                ReplaceEditor.Cut();
-            }
-            catch { }
-        }
-
-        private void cmiReplaceCopy_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                ReplaceEditor.Copy();
-            }
-            catch { }
-        }
-
-        private void cmiReplacePaste_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                ReplaceEditor.Paste();
-            }
-            catch { }
-        }
-
-        private void cmiRegexSelectAll_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                RegexEditor.SelectAll();
-            }
-            catch { }
-        }
-
-        private void cmiReplaceSelectAll_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                ReplaceEditor.SelectAll();
-            }
-            catch { }
-        }
-
-        private void cmiRegexIndent_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                SetToHistory(1);
-
-                if (RegexEditor.SelectionLength > 0)
-                {
-                    RegexEditor.SelectedText = IndentRegexPattern(RegexEditor.SelectedText);
-                }
-                else
-                    RegexEditor.Text = IndentRegexPattern(RegexEditor.Text);
-
-                regExOptionViewModelsList.Find(vm => vm.RegexOptions == RegexOptions.IgnorePatternWhitespace).Selected = true;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        private string IndentRegexPattern(string pattern)
-        {
-            return RegexPatternIndenter.IndentRegexPattern(pattern,
-                Config.Instance.AutoIndentCharClassesOnOneLine,
-                Config.Instance.AutoIndentKeepQuantifiersOnSameLine);
-        }
-
-        private void cmiRegexSetOnOneLine_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                SetToHistory(1);
-
-                if (RegexEditor.SelectionLength > 0)
-                {
-                    RegexEditor.SelectedText = RegexPatternIndenter.SetOnOneLine(RegexEditor.SelectedText);
-                }
-                else
-                {
-                    RegexEditor.Text = RegexPatternIndenter.SetOnOneLine(RegexEditor.Text);
-
-                    if (regExOptionViewModelsList.Find(vm => vm.RegexOptions == RegexOptions.IgnorePatternWhitespace).Selected
-                        && MessageBox.Show("Regex Option IgnorePatternWhitespace is checked.\nUncheck it ?", "IgnorePatternWhitespace",
-                            MessageBoxButton.YesNo,
-                            MessageBoxImage.Question) == MessageBoxResult.Yes)
-                    {
-                        regExOptionViewModelsList.Find(vm => vm.RegexOptions == RegexOptions.IgnorePatternWhitespace).Selected = false;
-                    }
+                    regExOptionViewModelsList.Find(vm => vm.RegexOptions == RegexOptions.IgnorePatternWhitespace).Selected = false;
                 }
             }
-            catch { }
         }
+        catch { }
+    }
 
-        private void miRegexOption_Click(object sender, RoutedEventArgs e)
+    private void miRegexOption_Click(object sender, RoutedEventArgs e)
+    {
+        try
         {
-            try
-            {
-                MenuItem mi = sender as MenuItem;
+            MenuItem mi = sender as MenuItem;
 
-                if (sender != null)
+            if (sender != null)
+            {
+                mi.IsChecked = !mi.IsChecked;
+            }
+        }
+        catch { }
+    }
+
+    private void ClearRegexHistory_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (MessageBox.Show("It will clear the C# Regex field history. This action is not cancelable.\nDo you want to continue?", "Clear History", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+            {
+                Config.Instance.RegexHistory.Clear();
+                Config.Instance.Save();
+            }
+        }
+        catch { }
+    }
+
+    private void ClearReplaceHistory_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (MessageBox.Show("It will clear the Replace field history. This action is not cancelable.\nDo you want to continue?", "Clear History", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+            {
+                Config.Instance.ReplaceHistory.Clear();
+                Config.Instance.Save();
+            }
+        }
+        catch { }
+    }
+
+    private void ClearDirectoryHistory_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (MessageBox.Show("It will clear the Directory field history. This action is not cancelable.\nDo you want to continue?", "Clear History", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+            {
+                Config.Instance.TextSourceDirectoryPathHistory.Clear();
+                Config.Instance.Save();
+            }
+        }
+        catch { }
+    }
+
+    private void ClearDirectoryFilterHistory_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (MessageBox.Show("It will clear the Directory filter field history. This action is not cancelable.\nDo you want to continue?", "Clear History", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+            {
+                Config.Instance.TextSourceDirectorySearchFilterHistory.Clear();
+                Config.Instance.Save();
+            }
+        }
+        catch { }
+    }
+
+    private void CSharpReplaceCheckbox_IsChecked_Changed(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            /*
+            if (CSharpReplaceCheckbox.IsChecked.GetValueOrDefault(false))
+            {
+                ReplaceEditor.SyntaxHighlighting = HighlightingManager.Instance.GetDefinition("C#");
+            }
+            else
+            */
+            {
+                XmlReader reader2 = XmlReader.Create(new StringReader(CSharpRegexTool.SyntaxRes.Replace_syntax_color));
+
+                ReplaceEditor.SyntaxHighlighting = HighlightingLoader.Load(reader2, HighlightingManager.Instance);
+            }
+        }
+        catch { }
+    }
+
+    private void SpecifiedDirectoryTextSourcePathButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            VistaFolderBrowserDialog folderBrowserDialog = new VistaFolderBrowserDialog()
+            {
+                Description = "Select source folder",
+                UseDescriptionForTitle = true
+            };
+
+            if (Directory.Exists(SpecifiedDirectoryTextSourcePathComboBox.Text))
+                folderBrowserDialog.SelectedPath = SpecifiedDirectoryTextSourcePathComboBox.Text;
+
+            // if (folderBrowserDialog.ShowDialog(GetWindow(this)).GetValueOrDefault(false))
+            if (folderBrowserDialog.ShowDialog().GetValueOrDefault(false))
+            {
+                SpecifiedDirectoryTextSourcePathComboBox.Text = folderBrowserDialog.SelectedPath;
+            }
+        }
+        catch { }
+    }
+
+    private void RestoreLastMachesSelectionButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            SetPosition?.Invoke(lastSelectionStart, lastSelectionLength);
+        }
+        catch { }
+    }
+
+    private void TreeViewItem_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+    }
+
+    private bool ShouldRExprItemBeSaved(RExprItem oldItem)
+    {
+        // TODO options
+        if (oldItem.MatchText != RegexEditor.Text ||
+            oldItem.ReplaceText != ReplaceEditor.Text ||
+            oldItem.Options != regExOptionViewModelsList
+                .Aggregate<RegExOptionViewModel, string>("", (total, next) => total + (next.Selected ? next.Name + " " : ""))
+                .Trim())
+        {
+            return true;
+        }
+        return false;
+    }
+
+    private void SaveExpressionItem(RExprItem oldItem)
+    {
+        oldItem.MatchText = RegexEditor.Text;
+        oldItem.ReplaceText = ReplaceEditor.Text;
+        oldItem.Options = regExOptionViewModelsList
+            .Aggregate<RegExOptionViewModel, string>("", (total, next) => total + (next.Selected ? next.Name + " " : ""))
+            .Trim();
+        //            
+        // save
+        Config.Instance.ExpressionLibrary.Save();
+    }
+
+    private void ComboBox_Selected(object sender, SelectionChangedEventArgs e)
+    {
+        int k = 0;
+        if (e.RemovedItems.Count == 1)
+        {
+            // save data to items
+            RExprItem oldItem = (RExprItem)e.RemovedItems[0];
+            if (ShouldRExprItemBeSaved(oldItem))
+            {
+                SaveExpressionItem(oldItem);
+            }
+        }
+        if (e.AddedItems.Count == 1)
+        {
+            _selectedExprItem = (RExprItem)e.AddedItems[0];
+            RegexEditor.Text = _selectedExprItem.MatchText;
+            ReplaceEditor.Text = _selectedExprItem.ReplaceText;
+            // set options
+            if (String.IsNullOrEmpty(_selectedExprItem.Options) == false)
+            {
+                string[] xOptions = _selectedExprItem.Options.Split(' ');
+                regExOptionViewModelsList.ForEach(delegate (RegExOptionViewModel optionModel)
                 {
-                    mi.IsChecked = !mi.IsChecked;
-                }
-            }
-            catch { }
-        }
-
-        private void ClearRegexHistory_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                if (MessageBox.Show("It will clear the C# Regex field history. This action is not cancelable.\nDo you want to continue?", "Clear History", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
-                {
-                    Config.Instance.RegexHistory.Clear();
-                    Config.Instance.Save();
-                }
-            }
-            catch { }
-        }
-
-        private void ClearReplaceHistory_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                if (MessageBox.Show("It will clear the Replace field history. This action is not cancelable.\nDo you want to continue?", "Clear History", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
-                {
-                    Config.Instance.ReplaceHistory.Clear();
-                    Config.Instance.Save();
-                }
-            }
-            catch { }
-        }
-
-        private void ClearDirectoryHistory_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                if (MessageBox.Show("It will clear the Directory field history. This action is not cancelable.\nDo you want to continue?", "Clear History", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
-                {
-                    Config.Instance.TextSourceDirectoryPathHistory.Clear();
-                    Config.Instance.Save();
-                }
-            }
-            catch { }
-        }
-
-        private void ClearDirectoryFilterHistory_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                if (MessageBox.Show("It will clear the Directory filter field history. This action is not cancelable.\nDo you want to continue?", "Clear History", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
-                {
-                    Config.Instance.TextSourceDirectorySearchFilterHistory.Clear();
-                    Config.Instance.Save();
-                }
-            }
-            catch { }
-        }
-
-        private void CSharpReplaceCheckbox_IsChecked_Changed(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                /*
-                if (CSharpReplaceCheckbox.IsChecked.GetValueOrDefault(false))
-                {
-                    ReplaceEditor.SyntaxHighlighting = HighlightingManager.Instance.GetDefinition("C#");
-                }
-                else
-                */
-                {
-                    XmlReader reader2 = XmlReader.Create(new StringReader(CSharpRegexTool.SyntaxRes.Replace_syntax_color));
-
-                    ReplaceEditor.SyntaxHighlighting = HighlightingLoader.Load(reader2, HighlightingManager.Instance);
-                }
-            }
-            catch { }
-        }
-
-        private void SpecifiedDirectoryTextSourcePathButton_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                VistaFolderBrowserDialog folderBrowserDialog = new VistaFolderBrowserDialog()
-                {
-                    Description = "Select source folder",
-                    UseDescriptionForTitle = true
-                };
-
-                if (Directory.Exists(SpecifiedDirectoryTextSourcePathComboBox.Text))
-                    folderBrowserDialog.SelectedPath = SpecifiedDirectoryTextSourcePathComboBox.Text;
-
-                // if (folderBrowserDialog.ShowDialog(GetWindow(this)).GetValueOrDefault(false))
-                if (folderBrowserDialog.ShowDialog().GetValueOrDefault(false))
-                {
-                    SpecifiedDirectoryTextSourcePathComboBox.Text = folderBrowserDialog.SelectedPath;
-                }
-            }
-            catch { }
-        }
-
-        private void RestoreLastMachesSelectionButton_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                SetPosition?.Invoke(lastSelectionStart, lastSelectionLength);
-            }
-            catch { }
-        }
-
-        private void TreeViewItem_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            e.Handled = true;
-        }
-
-        private bool ShouldRExprItemBeSaved(RExprItem oldItem)
-        {
-            // TODO options
-            if (oldItem.MatchText != RegexEditor.Text ||
-                oldItem.ReplaceText != ReplaceEditor.Text)
-            {
-                return true;
-            }
-            return false;
-        }
-
-        private void SaveRExprItem(RExprItem oldItem)
-        {
-            oldItem.MatchText = RegexEditor.Text;
-            oldItem.ReplaceText = ReplaceEditor.Text;
-            // RegexOptions opts = GetRegexOptions();
-            // save
-            Config.Instance.ExpressionLibrary.Save();
-        }
-
-        private void ComboBox_Selected(object sender, SelectionChangedEventArgs e)
-        {
-            int k = 0;           
-            if (e.RemovedItems.Count == 1)
-            {
-                // save data to items
-                RExprItem oldItem = (RExprItem)e.RemovedItems[0];
-                if (ShouldRExprItemBeSaved(oldItem))
-                {
-                    SaveRExprItem(oldItem);
-                }
-            }
-            if (e.AddedItems.Count == 1)
-            {
-                _selectedExprItem = (RExprItem)e.AddedItems[0];
-                RegexEditor.Text = _selectedExprItem.MatchText;
-                ReplaceEditor.Text = _selectedExprItem.ReplaceText;
-                // RegexOptions opts = GetRegexOptions();
-            }
-        }
-
-        private void RExprItemNew(object sender, RoutedEventArgs e)
-        {
-            if (_selectedExprItem != null && ShouldRExprItemBeSaved(_selectedExprItem))
-            {
-                SaveRExprItem(_selectedExprItem);
-            }
-            InputBox ib = new InputBox("Nome della nuova espressione", "Nome");
-            if (ib.ShowDialog() == true)
-            {
-
-            }
-        }
-
-        private void RExprItemSave(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void RExprItemDelete(object sender, RoutedEventArgs e)
-        {
-            if (_selectedExprItem != null)
-            {
-                Config.Instance.ExpressionLibrary.Items.Remove(_selectedExprItem);
-                Config.Instance.ExpressionLibrary.Save();
-                _selectedExprItem = null;
-                // TODO: first element
-                RegexEditor.Text = "";
-                ReplaceEditor.Text = "";
+                    optionModel.Selected = xOptions.Contains(optionModel.Name);
+                });
             }
         }
     }
+
+    private void RExprItemNew(object sender, RoutedEventArgs e)
+    {
+        if (_selectedExprItem != null && ShouldRExprItemBeSaved(_selectedExprItem))
+        {
+            SaveExpressionItem(_selectedExprItem);
+        }
+        InputBox ib = new InputBox("Nome della nuova espressione", "Nome");
+        if (ib.ShowDialog() == true)
+        {
+            // Enum.
+            RExprItem newItem = new RExprItem();
+            newItem.Name = ib.Answer;
+            Config.Instance.ExpressionLibrary.Items.Add(newItem);
+            ExpressionComboBox.SelectedItem = newItem;
+        }
+    }
+
+    private void RExprItemSave(object sender, RoutedEventArgs e)
+    {
+        if (_selectedExprItem != null && ShouldRExprItemBeSaved(_selectedExprItem))
+        {
+            SaveExpressionItem(_selectedExprItem);
+        }
+    }
+
+    private void RExprItemDelete(object sender, RoutedEventArgs e)
+    {
+        if (_selectedExprItem != null)
+        {
+            Config.Instance.ExpressionLibrary.Items.Remove(_selectedExprItem);
+            Config.Instance.ExpressionLibrary.Save();
+            _selectedExprItem = null;
+            // TODO: first element
+            RegexEditor.Text = "";
+            ReplaceEditor.Text = "";
+        }
+    }
+}
 }

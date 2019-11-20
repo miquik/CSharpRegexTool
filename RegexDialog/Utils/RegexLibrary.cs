@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -22,7 +23,7 @@ namespace RegexDialog
 
         public string MatchText { get; set; }
         public string ReplaceText { get; set; }
-        public int Options { get; set; }
+        public string Options { get; set; }
 
         public RExprType Type
         {
@@ -45,18 +46,18 @@ namespace RegexDialog
     public class RExprLibrary : INotifyPropertyChanged
     {
         string _filepath;
-        List<RExprItem> _items;
+        ObservableCollection<RExprItem> _items;
 
         public RExprLibrary()
         {
             _filepath = "";
-            _items = new List<RExprItem>();
+            _items = new ObservableCollection<RExprItem>();
         }
 
         public RExprLibrary(string path)
         {
             _filepath = path;
-            _items = new List<RExprItem>();
+            _items = new ObservableCollection<RExprItem>();
         }
 
 
@@ -69,7 +70,7 @@ namespace RegexDialog
         {
             get { return System.IO.Path.GetFileNameWithoutExtension(Filepath); }
         }
-        public List<RExprItem> Items
+        public ObservableCollection<RExprItem> Items
         {
             get { return _items; }
         }
@@ -77,6 +78,12 @@ namespace RegexDialog
 
         public void Save()
         {
+            if (String.IsNullOrEmpty(Filepath))
+            {
+                // don't know where to save
+                return;
+            }
+
             XDocument doc = new XDocument();
             XElement root = new XElement("rexpr_library");
 
@@ -97,6 +104,8 @@ namespace RegexDialog
                         new XCData(System.Net.WebUtility.HtmlEncode(item.ReplaceText)));
                     xelem.Add(ritem);
                 }
+                XElement oitem = new XElement("options", item.Options);
+                xelem.Add(oitem);
                 root.Add(xelem);
             }
 
@@ -163,6 +172,11 @@ namespace RegexDialog
                         {
                             ritem.ReplaceText = System.Net.WebUtility.HtmlDecode(cdata.Value);
                         }
+                    }
+                    ritem.Options = "";
+                    if (item.Element("options") != null && String.IsNullOrEmpty(item.Element("options").Value) == false)
+                    {
+                        ritem.Options = item.Element("options").Value;
                     }
                     // TODO options
                     _items.Add(ritem);
