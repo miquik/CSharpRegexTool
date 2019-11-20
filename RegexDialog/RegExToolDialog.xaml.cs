@@ -1912,14 +1912,11 @@ namespace RegexDialog
                 RegexEditor.Text = _selectedExprItem.MatchText;
                 ReplaceEditor.Text = _selectedExprItem.ReplaceText;
                 // set options
-                if (String.IsNullOrEmpty(_selectedExprItem.Options) == false)
+                string[] xOptions = !String.IsNullOrEmpty(_selectedExprItem.Options) ? _selectedExprItem.Options.Split(' ') : null;
+                regExOptionViewModelsList.ForEach(delegate (RegExOptionViewModel optionModel)
                 {
-                    string[] xOptions = _selectedExprItem.Options.Split(' ');
-                    regExOptionViewModelsList.ForEach(delegate (RegExOptionViewModel optionModel)
-                    {
-                        optionModel.Selected = xOptions.Contains(optionModel.Name);
-                    });
-                }
+                    optionModel.Selected = (xOptions != null ? xOptions.Contains(optionModel.Name) : false);
+                });
             }
         }
 
@@ -1945,6 +1942,7 @@ namespace RegexDialog
             if (_selectedExprItem != null && ShouldRExprItemBeSaved(_selectedExprItem))
             {
                 SaveExpressionItem(_selectedExprItem);
+                MessageBox.Show("Saved!");
             }
         }
 
