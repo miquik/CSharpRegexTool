@@ -10,7 +10,6 @@
         MinWidth="600"
         Loaded="Root_Loaded"
         SizeChanged="Root_SizeChanged"
-        PreviewKeyDown="Root_PreviewKeyDown"
         DataContext="{x:Static local:Config.Instance}"
         x:Name="Root">
   <UserControl.Resources>
@@ -70,12 +69,6 @@
             <Image Source="{StaticResource SavePicture}" />
           </MenuItem.Icon>
         </MenuItem>
-        <Separator/>
-        <MenuItem Header="_Exit" Click="Exit_MenuItem_Click" >
-          <MenuItem.Icon>
-            <Image Source="{StaticResource ExitPicture}" />
-          </MenuItem.Icon>
-        </MenuItem>
       </MenuItem>
       <MenuItem Header="_Actions" >
         <MenuItem Header="_Is Match ?" Click="IsMatchButton_Click">
@@ -126,15 +119,6 @@
                               IsCheckable="True"
                               IsChecked="{Binding AutoIndentKeepQuantifiersOnSameLine}" />
         </MenuItem>
-      </MenuItem>
-      <MenuItem Header="_History" >
-        <MenuItem Header="Put C# Regex In History" Click="PutInRegexHistory_Click" />
-        <MenuItem Header="Put Replace In History" Click="PutInReplaceHistory_Click" />
-        <Separator />
-        <MenuItem Header="Clear C# Regex History" Click="ClearRegexHistory_Click" />
-        <MenuItem Header="Clear Replace History" Click="ClearReplaceHistory_Click" />
-        <MenuItem Header="Clear Directory History" Click="ClearDirectoryHistory_Click" />
-        <MenuItem Header="Clear Directory Filter History" Click="ClearDirectoryFilterHistory_Click" />
       </MenuItem>
     </Menu>
     <Border DockPanel.Dock="Top">
