@@ -24,12 +24,20 @@ namespace RegexDialog
         {
             get
             {
+                /*
                 if (_activeDocument == null)
                 {
                     if (_dte != null)
                     {
                         _activeDocument = _dte.ActiveDocument;
                     }
+                }
+                */
+                if (_dte != null)
+                {
+                    _activeDocument = _dte.ActiveDocument;
+                } else {
+                    _activeDocument = null;
                 }
                 return _activeDocument;
             }
@@ -39,12 +47,21 @@ namespace RegexDialog
         {
             get
             {
+                /*
                 if (_textDocument == null)
                 {
                     if (ActiveDocument != null)
                     {
                         _textDocument = ActiveDocument.Object() as TextDocument;
                     }
+                }
+                */
+                if (ActiveDocument != null)
+                {
+                    _textDocument = ActiveDocument.Object() as TextDocument;
+                } else
+                {
+                    _textDocument = null;
                 }
                 return _textDocument;
             }
